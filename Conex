@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONEX</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:system-ui,sans-serif;
+    background:#101114;
+    color:white;
+}
+
+button,input,textarea{font:inherit}
+
+button{
+    border:0;
+    border-radius:12px;
+    padding:11px 14px;
+    background:#292d38;
+    color:white;
+    cursor:pointer;
+}
+
+button:active{transform:scale(.97)}
+
+#startup{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:#101114;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:opacity .5s;
+}
+
+.start-logo{
+    width:74px;
+    height:74px;
+    border:6px solid white;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+}
+
+#app{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+header{
+    padding:13px;
+    background:#181a20;
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo{
+    width:42px;
+    height:42px;
+    border:4px solid white;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+}
+
+#chat{
+    flex:1;
+    overflow-y:auto;
+    width:100%;
+    max-width:1000px;
+    margin:auto;
+    padding:15px;
+}
+
+.message{
+    max-width:85%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:15px;
+    white-space:pre-wrap;
+}
+
+.user{
+    margin-left:auto;
+    background:#3157d5;
+}
+
+.ai{
+    background:#242730;
+}
+
+.input-area{
+    display:flex;
+    gap:7px;
+    padding:9px;
+    background:#181a20;
+}
+
+textarea{
+    flex:1;
+    resize:none;
+    min-height:46px;
+    border:0;
+    outline:0;
+    border-radius:13px;
+    padding:12px;
+    background:#292d38;
+    color:white;
+}
+
+.send{
+    background:#3157d5;
+    width:55px;
+}
+
+nav{
+    display:flex;
+    justify-content:center;
+    gap:4px;
+    background:#181a20;
+    padding:7px;
+    overflow-x:auto;
+}
+
+nav button{
+    background:transparent;
+    white-space:nowrap;
+}
+
+.panel{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:none;
+    flex-direction:column;
+    background:#101114;
+}
+
+.panel.active{
+    display:flex;
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px;
+    background:#181a20;
+}
+
+.panel-content{
+    padding:15px;
+    overflow-y:auto;
+    width:100%;
+    max-width:900px;
+    margin:auto;
+}
+
+.card{
+    background:#1c1f27;
+    border-radius:15px;
+    padding:15px;
+    margin-bottom:12px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border:0;
+    border-radius:12px;
+    background:#292d38;
+    color:white;
+    margin:6px 0;
+}
+
+.block{
+    padding:12px;
+    border-radius:10px;
+    background:#3157d5;
+    margin:7px 0;
+}
+
+.status{
+    opacity:.7;
+    font-size:13px;
+}
+
+.danger{
+    background:#7d3030;
+}
+
+.answer{
+    white-space:pre-wrap;
+}
+
+@media(min-width:800px){
+    #chat{padding:25px}
+
+    .input-area{
+        padding-left:15%;
+        padding-right:15%;
+    }
+
+    .message{
+        max-width:70%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     STARTUP
+========================= -->
+
+<div id="startup">
+
+    <div class="start-logo">◯</div>
+
+    <h1>CONEX</h1>
+
+    <div>Hello World!</div>
+
+    <p>Starting...</p>
+
+</div>
+
+
+<!-- =========================
+     MAIN APP
+========================= -->
+
+<div id="app">
+
+<header>
+
+    <div class="logo">◯</div>
+
+    <div>
+        <b>CONEX</b><br>
+        <small>Core Over Nova EXE Xetro</small>
+    </div>
+
+</header>
+
+
+<div id="chat"></div>
+
+
+<div class="input-area">
+
+<textarea
+    id="message"
+    placeholder="Talk to CONEX..."
+    rows="1"></textarea>
+
+<button
+    class="send"
+    onclick="sendMessage()">
+
+    ➤
+
+</button>
+
+</div>
+
+
+<nav>
+
+<button onclick="openPanel('profile')">
+👤 Profile
+</button>
+
+<button onclick="openPanel('memory')">
+💾 Memory
+</button>
+
+<button onclick="openPanel('book')">
+📖 Book
+</button>
+
+<button onclick="openPanel('blocks')">
+🧩 Blocks
+</button>
+
+<button onclick="openPanel('chatgpt')">
+🤖 ChatGPT
+</button>
+
+<button onclick="openPanel('settings')">
+⚙️ Settings
+</button>
+
+</nav>
+
+</div>
+
+
+<!-- =========================
+     PROFILE
+========================= -->
+
+<div id="profile" class="panel">
+
+<div class="panel-header">
+
+<b>👤 CONEX Profile</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<h3>Your information</h3>
+
+<input
+id="profileName"
+placeholder="Your name">
+
+<input
+id="profileUsername"
+placeholder="CONEX username">
+
+<input
+id="profileFavorite"
+placeholder="Favorite things">
+
+<button onclick="saveProfile()">
+💾 Save Profile
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>🧠 What CONEX knows</h3>
+
+<div id="profileInfo">
+Nothing saved yet.
+</div>
+
+<br>
+
+<button
+class="danger"
+onclick="deleteProfile()">
+
+🗑️ Delete My Profile
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     MEMORY
+========================= -->
+
+<div id="memory" class="panel">
+
+<div class="panel-header">
+
+<b>💾 Memory</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<input
+id="memoryInput"
+placeholder="What should CONEX remember?">
+
+<button onclick="saveMemory()">
+Save memory
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>Memories</h3>
+
+<div id="memoryList"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     BOOK GENERATOR
+========================= -->
+
+<div id="book" class="panel">
+
+<div class="panel-header">
+
+<b>📖 Book Generator</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<input
+id="bookIdea"
+placeholder="Example: A robot finds a secret moon">
+
+<button onclick="generateBook()">
+✨ Generate book
+</button>
+
+</div>
+
+<div class="card">
+
+<div id="bookOutput">
+Your book will appear here.
+</div>
+
+<br>
+
+<button onclick="speakBook()">
+🔊 Read aloud
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     BLOCKS
+========================= -->
+
+<div id="blocks" class="panel">
+
+<div class="panel-header">
+
+<b>🧩 Scratch Blocky</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<button onclick="addBlock('WHEN MESSAGE')">
++ WHEN MESSAGE
+</button>
+
+<button onclick="addBlock('CHECK SAFETY')">
++ CHECK SAFETY
+</button>
+
+<button onclick="addBlock('REMEMBER')">
++ REMEMBER
+</button>
+
+<button onclick="addBlock('RESPOND')">
++ RESPOND
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>Program</h3>
+
+<div id="blockList"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     CHATGPT
+========================= -->
+
+<div id="chatgpt" class="panel">
+
+<div class="panel-header">
+
+<b>🤖 Ask ChatGPT</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<h3>ChatGPT Helper</h3>
+
+<textarea
+id="chatGPTQuestion"
+rows="5"
+placeholder="Ask ChatGPT something..."
+style="width:100%;
+background:#292d38;
+color:white;
+border:0;
+border-radius:12px;
+padding:12px;"></textarea>
+
+<br><br>
+
+<button onclick="askChatGPT()">
+🤖 Ask ChatGPT
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>Response</h3>
+
+<div
+id="chatGPTAnswer"
+class="answer">
+
+ChatGPT isn't connected yet.
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     SETTINGS
+========================= -->
+
+<div id="settings" class="panel">
+
+<div class="panel-header">
+
+<b>⚙️ Settings</b>
+
+<button onclick="closePanels()">✕</button>
+
+</div>
+
+<div class="panel-content">
+
+<div class="card">
+
+<h3>🌐 Web Access</h3>
+
+<button
+id="webButton"
+onclick="toggleWeb()">
+
+OFF
+
+</button>
+
+<p
+id="webStatus"
+class="status">
+
+🔒 Local-only mode.
+
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>🔊 Voice</h3>
+
+<button onclick="speak('Hello! I am CONEX.')">
+
+Test voice
+
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>🧹 Local Data</h3>
+
+<button
+class="danger"
+onclick="clearAllLocalData()">
+
+Delete CONEX local data
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   STORAGE
+========================= */
+
+const KEY = {
+
+    memory:"conexMemory",
+
+    blocks:"conexBlocks",
+
+    profile:"conexProfile",
+
+    web:"conexWeb"
+
+};
+
+
+let memories =
+JSON.parse(
+localStorage.getItem(KEY.memory) || "[]"
+);
+
+
+let blocks =
+JSON.parse(
+localStorage.getItem(KEY.blocks) || "[]"
+);
+
+
+let profile =
+JSON.parse(
+localStorage.getItem(KEY.profile) || "{}"
+);
+
+
+let webAccess =
+localStorage.getItem(KEY.web) === "true";
+
+
+let lastBook = "";
+
+
+/* =========================
+   CHAT
+========================= */
+
+function addMessage(text,type){
+
+    const box =
+    document.createElement("div");
+
+    box.className =
+    "message " + type;
+
+    box.textContent = text;
+
+    document
+    .getElementById("chat")
+    .appendChild(box);
+
+    const chat =
+    document.getElementById("chat");
+
+    chat.scrollTop =
+    chat.scrollHeight;
+
+}
+
+
+/* =========================
+   LOCAL CONEX AI
+========================= */
+
+function think(text){
+
+    const lower =
+    text.toLowerCase().trim();
+
+
+    if(
+        lower === "hi" ||
+        lower === "hello" ||
+        lower === "hey"
+    ){
+
+        return "Hello! I'm CONEX. ◯";
+
+    }
+
+
+    if(
+        lower.includes("who are you")
+    ){
+
+        return
+        "I'm CONEX — Core Over Nova EXE Xetro.";
+
+    }
+
+
+    if(
+        lower.includes("what is your name")
+    ){
+
+        return "My name is CONEX. ◯";
+
+    }
+
+
+    if(
+        lower.includes("hello world")
+    ){
+
+        return "Hello World! 🌍";
+
+    }
+
+
+    if(
+        lower.startsWith("remember ")
+    ){
+
+        const memory =
+        text.substring(9).trim();
+
+
+        if(memory){
+
+            memories.push(memory);
+
+            localStorage.setItem(
+                KEY.memory,
+                JSON.stringify(memories)
+            );
+
+            updateMemoryList();
+
+        }
+
+
+        return "🧠 Saved to CONEX memory.";
+
+    }
+
+
+    if(
+        lower.includes("what do you remember") ||
+        lower.includes("show my memories")
+    ){
+
+        if(!memories.length){
+
+            return
+            "🧠 I don't remember anything yet.";
+
+        }
+
+
+        return
+        "🧠 I remember:\n\n" +
+
+        memories
+        .map(
+            (m,i)=>
+            `${i+1}. ${m}`
+        )
+        .join("\n");
+
+    }
+
+
+    if(lower.includes("my name")){
+
+        if(profile.name){
+
+            return
+            `Your saved name is ${profile.name}.`;
+
+        }
+
+        return
+        "You haven't saved your name yet.";
+
+    }
+
+
+    return
+    "I'm still learning. 🧠\n\n" +
+    "You said:\n" +
+    text;
+
+}
+
+
+/* =========================
+   SEND
+========================= */
+
+function sendMessage(){
+
+    const input =
+    document.getElementById("message");
+
+    const text =
+    input.value.trim();
+
+
+    if(!text)return;
+
+
+    addMessage(
+        text,
+        "user"
+    );
+
+
+    input.value = "";
+
+
+    setTimeout(()=>{
+
+        addMessage(
+            think(text),
+            "ai"
+        );
+
+    },250);
+
+}
+
+
+/* =========================
+   MEMORY
+========================= */
+
+function saveMemory(){
+
+    const input =
+    document.getElementById("memoryInput");
+
+    const text =
+    input.value.trim();
+
+
+    if(!text)return;
+
+
+    memories.push(text);
+
+
+    localStorage.setItem(
+        KEY.memory,
+        JSON.stringify(memories)
+    );
+
+
+    input.value = "";
+
+
+    updateMemoryList();
+
+}
+
+
+function updateMemoryList(){
+
+    const list =
+    document.getElementById("memoryList");
+
+
+    list.innerHTML = "";
+
+
+    if(!memories.length){
+
+        list.textContent =
+        "No memories saved.";
+
+        return;
+
+    }
+
+
+    memories.forEach(
+        (memory,index)=>{
+
+            const p =
+            document.createElement("p");
+
+            p.textContent =
+            `${index+1}. ${memory}`;
+
+            list.appendChild(p);
+
+        }
+    );
+
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+function saveProfile(){
+
+    profile = {
+
+        name:
+        document
+        .getElementById("profileName")
+        .value
+        .trim(),
+
+        username:
+        document
+        .getElementById("profileUsername")
+        .value
+        .trim(),
+
+        favorite:
+        document
+        .getElementById("profileFavorite")
+        .value
+        .trim()
+
+    };
+
+
+    localStorage.setItem(
+        KEY.profile,
+        JSON.stringify(profile)
+    );
+
+
+    updateProfile();
+
+}
+
+
+function escapeHTML(text){
+
+    const div =
+    document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
+
+
+function updateProfile(){
+
+    const info =
+    document
+    .getElementById("profileInfo");
+
+
+    document
+    .getElementById("profileName")
+    .value =
+    profile.name || "";
+
+
+    document
+    .getElementById("profileUsername")
+    .value =
+    profile.username || "";
+
+
+    document
+    .getElementById("profileFavorite")
+    .value =
+    profile.favorite || "";
+
+
+    if(
+        !profile.name &&
+        !profile.username &&
+        !profile.favorite
+    ){
+
+        info.textContent =
+        "Nothing saved yet.";
+
+        return;
+
+    }
+
+
+    info.innerHTML = `
+
+        <p>
+        <b>Name:</b>
+        ${escapeHTML(profile.name || "Not set")}
+        </p>
+
+        <p>
+        <b>Username:</b>
+        ${escapeHTML(profile.username || "Not set")}
+        </p>
+
+        <p>
+        <b>Favorite:</b>
+        ${escapeHTML(profile.favorite || "Not set")}
+        </p>
+
+    `;
+
+}
+
+
+function deleteProfile(){
+
+    if(
+        !confirm(
+            "Delete your CONEX profile?"
+        )
+    )return;
+
+
+    localStorage.removeItem(
+        KEY.profile
+    );
+
+
+    profile = {};
+
+
+    updateProfile();
+
+}
+
+
+/* =========================
+   BOOK GENERATOR
+========================= */
+
+function generateBook(){
+
+    const idea =
+    document
+    .getElementById("bookIdea")
+    .value
+    .trim();
+
+
+    if(!idea)return;
+
+
+    lastBook =
+
+`📖 ${idea}
+
+Chapter 1 — The Beginning
+
+Something unexpected happened.
+
+The story began with:
+
+${idea}
+
+Chapter 2 — The Mystery
+
+The characters discovered that
+the first clue was only the beginning.
+
+Chapter 3 — The Adventure
+
+A difficult challenge appeared,
+but they worked together.
+
+Chapter 4 — The Ending
+
+The mystery was finally solved.
+
+THE END`;
+
+
+    document
+    .getElementById("bookOutput")
+    .textContent =
+    lastBook;
+
+}
+
+
+function speakBook(){
+
+    if(lastBook){
+
+        speak(lastBook);
+
+    }
+
+}
+
+
+/* =========================
+   VOICE
+========================= */
+
+function speak(text){
+
+    if(
+        !("speechSynthesis" in window)
+    ){
+
+        alert(
+            "Voice isn't supported."
+        );
+
+        return;
+
+    }
+
+
+    speechSynthesis.cancel();
+
+
+    speechSynthesis.speak(
+        new SpeechSynthesisUtterance(text)
+    );
+
+}
+
+
+/* =========================
+   BLOCKS
+========================= */
+
+function addBlock(name){
+
+    blocks.push(name);
+
+
+    localStorage.setItem(
+        KEY.blocks,
+        JSON.stringify(blocks)
+    );
+
+
+    updateBlocks();
+
+}
+
+
+function updateBlocks(){
+
+    const list =
+    document.getElementById("blockList");
+
+
+    list.innerHTML = "";
+
+
+    if(!blocks.length){
+
+        list.textContent =
+        "No blocks yet.";
+
+        return;
+
+    }
+
+
+    blocks.forEach(
+        (block,index)=>{
+
+            const div =
+            document.createElement("div");
+
+            div.className =
+            "block";
+
+            div.textContent =
+            `${index+1}. ${block}`;
+
+            list.appendChild(div);
+
+        }
+    );
+
+}
+
+
+/* =========================
+   CHATGPT HELPER
+========================= */
+
+async function askChatGPT(){
+
+    const input =
+    document.getElementById(
+        "chatGPTQuestion"
+    );
+
+    const output =
+    document.getElementById(
+        "chatGPTAnswer"
+    );
+
+
+    const question =
+    input.value.trim();
+
+
+    if(!question){
+
+        output.textContent =
+        "Type something first.";
+
+        return;
+
+    }
+
+
+    output.textContent =
+    "🤖 ChatGPT is thinking...";
+
+
+    try{
+
+        /*
+          IMPORTANT:
+
+          /api/chat must be your own
+          secure backend.
+
+          Never put an OpenAI API key
+          in this HTML file.
+        */
+
+        const response =
+        await fetch(
+            "/api/chat",
+            {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body:JSON.stringify({
+
+                    message:question
+
+                })
+
+            }
+        );
+
+
+        if(!response.ok){
+
+            throw new Error(
+                "Backend unavailable"
+            );
+
+        }
+
+
+        const data =
+        await response.json();
+
+
+        output.textContent =
+        data.reply ||
+        "No response received.";
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+
+        output.textContent =
+
+        "⚠️ ChatGPT isn't connected yet.\n\n" +
+
+        "CONEX's local AI is still working.\n\n" +
+
+        "The backend endpoint /api/chat has not been connected.";
+
+    }
+
+}
+
+
+/* =========================
+   WEB ACCESS
+========================= */
+
+function toggleWeb(){
+
+    webAccess =
+    !webAccess;
+
+
+    localStorage.setItem(
+        KEY.web,
+        webAccess
+    );
+
+
+    updateWeb();
+
+}
+
+
+function updateWeb(){
+
+    document
+    .getElementById("webButton")
+    .textContent =
+    webAccess
+    ? "ON"
+    : "OFF";
+
+
+    document
+    .getElementById("webStatus")
+    .textContent =
+
+    webAccess
+
+    ?
+
+    "🌐 Web setting ON. A web connector can be added later."
+
+    :
+
+    "🔒 Local-only mode.";
+
+}
+
+
+/* =========================
+   PANELS
+========================= */
+
+function openPanel(id){
+
+    closePanels();
+
+
+    document
+    .getElementById(id)
+    .classList
+    .add("active");
+
+}
+
+
+function closePanels(){
+
+    document
+    .querySelectorAll(".panel")
+    .forEach(
+        panel =>
+        panel
+        .classList
+        .remove("active")
+    );
+
+}
+
+
+/* =========================
+   DELETE DATA
+========================= */
+
+function clearAllLocalData(){
+
+    if(
+        !confirm(
+            "Delete all CONEX local data?"
+        )
+    )return;
+
+
+    Object
+    .values(KEY)
+    .forEach(
+        key =>
+        localStorage.removeItem(key)
+    );
+
+
+    location.reload();
+
+}
+
+
+/* =========================
+   ENTER TO SEND
+========================= */
+
+document
+.getElementById("message")
+.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Enter" &&
+            !event.shiftKey
+        ){
+
+            event.preventDefault();
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+
+/* =========================
+   STARTUP
+========================= */
+
+window.addEventListener(
+    "load",
+    ()=>{
+
+        updateMemoryList();
+
+        updateBlocks();
+
+        updateProfile();
+
+        updateWeb();
+
+
+        setTimeout(()=>{
+
+            const startup =
+            document.getElementById(
+                "startup"
+            );
+
+
+            startup.style.opacity = "0";
+
+
+            setTimeout(()=>{
+
+                startup.remove();
+
+            },500);
+
+
+        },1800);
+
+    }
+);
+
+</script>
+
+</body>
+</html>
