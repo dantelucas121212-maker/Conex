@@ -1,1092 +1,872 @@
-import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
-
-const app = express();
-const port = process.env.PORT || 3000;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
-
-app.get("/", (req, res) => {
-  res.json({
-    name: "CONEX AI Server",
-    status: "online"
-  });
-});
-
-app.post("/api/chat", async (req, res) => {
-  try {
-    const message = String(req.body.message || "").trim();
-
-    if (!message) {
-      return res.status(400).json({
-        error: "Message is required."
-      });
-    }
-
-    if (message.length > 4000) {
-      return res.status(400).json({
-        error: "Message is too long."
-      });
-    }
-
-    const response = await openai.responses.create({
-      model: "gpt-5.6-luna",
-      instructions:
-        "You are CONEX AI, a friendly assistant inside the CONEX app. Keep answers useful and reasonably concise.",
-      input: message
-    });
-
-    res.json({
-      reply: response.output_text
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "CONEX AI server error."
-    });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`CONEX AI server running on port ${port}`);
-}); app.post("/api/chat", async (req, res) => {
-    // receive CONEX message
-    // send it to the AI
-    // return the AI response
-});<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>CONEX AI</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONEX</title>
   <style>
-    * {
-      box-sizing: border-box;
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #0f1117;
+      --panel: #181a20;
+      --panel-2: #1d212b;
+      --card: #1c1f27;
+      --ink: #f3f6ff;
+      --muted: #aab4c8;
+      --blue: #3157d5;
+      --blue-soft: #4b6ce9;
+      --green: #39b27d;
+      --red: #b44a4a;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
     }
 
-    body {
+    html, body {
       margin: 0;
-      background: #101114;
-      color: white;
+      min-height: 100%;
+      background: radial-gradient(circle at top, #171d2e 0%, var(--bg) 35%);
+      color: var(--ink);
       font-family: system-ui, sans-serif;
     }
 
-    header {
-      padding: 18px;
-      font-size: 24px;
-      font-weight: bold;
-      border-bottom: 1px solid #292b30;
-    }
-
-    #chat {
-      height: calc(100vh - 145px);
-      overflow-y: auto;
-      padding: 18px;
-    }
-
-    .message {
-      max-width: 85%;
-      padding: 12px 15px;
-      margin: 10px 0;
-      border-radius: 16px;
-      white-space: pre-wrap;
-    }
-
-    .user {
-      margin-left: auto;
-      background: #2563eb;
-    }
-
-    .ai {
-      margin-right: auto;
-      background: #25272d;
-    }
-
-    #bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+    body {
       display: flex;
-      gap: 8px;
-      padding: 12px;
-      background: #17181c;
-      border-top: 1px solid #292b30;
+      justify-content: center;
+      align-items: stretch;
     }
 
-    #message {
-      flex: 1;
-      min-width: 0;
-      padding: 13px;
-      border: 0;
-      outline: 0;
-      border-radius: 14px;
-      background: #292b31;
-      color: white;
-      font-size: 16px;
+    button, input, textarea {
+      font: inherit;
     }
 
     button {
       border: 0;
-      border-radius: 14px;
-      padding: 0 18px;
-      background: #2563eb;
+      border-radius: 12px;
+      padding: 11px 14px;
+      background: #292d38;
       color: white;
-      font-size: 16px;
-      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
     }
 
-    button:disabled {
-      opacity: 0.5;
+    button:hover { filter: brightness(1.08); }
+    button:active { transform: scale(0.97); }
+
+    #startup {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at center, #141a26 0%, #101114 70%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.5s ease;
+    }
+
+    .start-logo {
+      width: 76px;
+      height: 76px;
+      border: 6px solid white;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    #app {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 13px 16px;
+      background: #181a20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border: 4px solid white;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 18px 15px 12px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 12px 14px;
+      margin: 8px 0;
+      border-radius: 16px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      box-shadow: var(--shadow);
+    }
+
+    .user {
+      margin-left: auto;
+      background: linear-gradient(135deg, var(--blue-soft), var(--blue));
+    }
+
+    .ai {
+      background: #242730;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .ai::before {
+      content: "CONEX";
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 7px;
+      padding: 9px;
+      background: #181a20;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 46px;
+      max-height: 180px;
+      border: 0;
+      outline: 0;
+      border-radius: 13px;
+      padding: 12px;
+      background: #292d38;
+      color: white;
+    }
+
+    .send {
+      background: linear-gradient(135deg, var(--blue-soft), var(--blue));
+      width: 58px;
+      min-width: 58px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      background: #181a20;
+      padding: 7px;
+      overflow-x: auto;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    nav button {
+      background: transparent;
+      white-space: nowrap;
+      opacity: 0.9;
+    }
+
+    .panel {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .panel.active { display: flex; }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: #181a20;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .panel-content {
+      padding: 15px;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 12px;
+      background: #292d38;
+      color: white;
+      margin: 6px 0;
+    }
+
+    .block {
+      padding: 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue-soft), var(--blue));
+      margin: 7px 0;
+    }
+
+    .status {
+      opacity: 0.7;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .danger {
+      background: #7d3030;
+    }
+
+    .answer {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .quick-actions button {
+      background: #2c303a;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    @media (min-width: 800px) {
+      #chat { padding: 25px; }
+      .input-area { padding-left: 15%; padding-right: 15%; }
+      .message { max-width: 70%; }
     }
   </style>
 </head>
-
 <body>
-
-<header>🟢 CONEX AI</header>
-
-<div id="chat">
-  <div class="message ai">
-    Hi! I'm CONEX AI. What do you want to do?
-  </div>
-</div>
-
-<form id="bar">
-  <input
-    id="message"
-    autocomplete="off"
-    placeholder="Ask CONEX AI..."
-  >
-
-  <button id="send" type="submit">
-    Send
-  </button>
-</form>
-
-<script>
-  /*
-    CHANGE THIS to your server's address.
-
-    Example:
-    https://your-conex-server.example.com
-  */
-  const API_URL = "https://YOUR-SERVER-URL.com";
-
-  const chat = document.getElementById("chat");
-  const input = document.getElementById("message");
-  const send = document.getElementById("send");
-
-  function addMessage(text, type) {
-    const div = document.createElement("div");
-
-    div.className = "message " + type;
-    div.textContent = text;
-
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  document.getElementById("bar").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const message = input.value.trim();
-
-    if (!message) return;
-
-    addMessage(message, "user");
-
-    input.value = "";
-    send.disabled = true;
-    send.textContent = "...";
-
-    try {
-      const response = await fetch(API_URL + "/api/chat", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          message: message
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Server error");
-      }
-
-      addMessage(data.reply, "ai");
-
-    } catch (error) {
-      addMessage(
-        "CONEX couldn't connect to its AI server.",
-        "ai"
-      );
-
-      console.error(error);
-
-    } finally {
-      send.disabled = false;
-      send.textContent = "Send";
-      input.focus();
-    }
-  });
-</script>
-
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CONEX</title>
-
-<style>
-*{box-sizing:border-box}
-
-:root{
-    --bg:#0f1117;
-    --panel:#181a20;
-    --panel-2:#1d212b;
-    --card:#1c1f27;
-    --ink:#f3f6ff;
-    --muted:#aab4c8;
-    --blue:#3157d5;
-    --blue-soft:#4b6ce9;
-    --green:#39b27d;
-    --red:#b44a4a;
-    --shadow:0 18px 40px rgba(0,0,0,.28);
-}
-
-body{
-    margin:0;
-    font-family:system-ui,sans-serif;
-    background:radial-gradient(circle at top,#171d2e 0%, var(--bg) 35%);
-    color:var(--ink);
-}
-
-button,input,textarea{font:inherit}
-
-button{
-    border:0;
-    border-radius:12px;
-    padding:11px 14px;
-    background:#292d38;
-    color:white;
-    cursor:pointer;
-    transition:.2s ease;
-}
-
-button:hover{filter:brightness(1.08)}
-button:active{transform:scale(.97)}
-
-#startup{
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    background:radial-gradient(circle at center,#141a26 0%, #101114 70%);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    transition:opacity .5s ease;
-    gap:8px;
-}
-
-.start-logo{
-    width:76px;
-    height:76px;
-    border:6px solid white;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    font-size:28px;
-    box-shadow:var(--shadow);
-}
-
-#app{
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-}
-
-header{
-    padding:13px 16px;
-    background:#181a20;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    border-bottom:1px solid rgba(255,255,255,.04);
-}
-
-.logo{
-    width:42px;
-    height:42px;
-    border:4px solid white;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    font-size:18px;
-}
-
-#chat{
-    flex:1;
-    overflow-y:auto;
-    width:100%;
-    max-width:1000px;
-    margin:0 auto;
-    padding:18px 15px 12px;
-}
-
-.message{
-    max-width:85%;
-    padding:12px 14px;
-    margin:8px 0;
-    border-radius:16px;
-    white-space:pre-wrap;
-    line-height:1.45;
-    box-shadow:var(--shadow);
-}
-
-.user{
-    margin-left:auto;
-    background:linear-gradient(135deg, var(--blue-soft), var(--blue));
-}
-
-.ai{
-    background:#242730;
-    border:1px solid rgba(255,255,255,.04);
-}
-
-.ai::before{
-    content:"CONEX";
-    display:block;
-    font-size:11px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    opacity:.7;
-    margin-bottom:6px;
-}
-
-.input-area{
-    display:flex;
-    gap:7px;
-    padding:9px;
-    background:#181a20;
-    border-top:1px solid rgba(255,255,255,.04);
-}
-
-textarea{
-    flex:1;
-    resize:none;
-    min-height:46px;
-    max-height:180px;
-    border:0;
-    outline:0;
-    border-radius:13px;
-    padding:12px;
-    background:#292d38;
-    color:white;
-}
-
-.send{
-    background:linear-gradient(135deg, var(--blue-soft), var(--blue));
-    width:58px;
-    min-width:58px;
-}
-
-nav{
-    display:flex;
-    justify-content:center;
-    gap:4px;
-    background:#181a20;
-    padding:7px;
-    overflow-x:auto;
-    border-top:1px solid rgba(255,255,255,.04);
-}
-
-nav button{
-    background:transparent;
-    white-space:nowrap;
-    opacity:.9;
-}
-
-.panel{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    display:none;
-    flex-direction:column;
-    background:var(--bg);
-}
-
-.panel.active{display:flex}
-
-.panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:14px 16px;
-    background:#181a20;
-    border-bottom:1px solid rgba(255,255,255,.04);
-}
-
-.panel-content{
-    padding:15px;
-    overflow-y:auto;
-    width:100%;
-    max-width:900px;
-    margin:auto;
-}
-
-.card{
-    background:var(--card);
-    border-radius:15px;
-    padding:15px;
-    margin-bottom:12px;
-    box-shadow:var(--shadow);
-}
-
-input{
-    width:100%;
-    padding:12px;
-    border:0;
-    border-radius:12px;
-    background:#292d38;
-    color:white;
-    margin:6px 0;
-}
-
-.block{
-    padding:12px;
-    border-radius:10px;
-    background:linear-gradient(135deg, var(--blue-soft), var(--blue));
-    margin:7px 0;
-}
-
-.status{
-    opacity:.7;
-    font-size:13px;
-    margin-top:8px;
-}
-
-.danger{
-    background:#7d3030;
-}
-
-.answer{
-    white-space:pre-wrap;
-    line-height:1.5;
-}
-
-.quick-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-top:10px;
-}
-
-.quick-actions button{
-    background:#2c303a;
-    padding:8px 10px;
-    font-size:13px;
-}
-
-@media(min-width:800px){
-    #chat{padding:25px}
-    .input-area{padding-left:15%;padding-right:15%}
-    .message{max-width:70%}
-}
-</style>
-</head>
-
-<body>
-
-<div id="startup">
+  <div id="startup">
     <div class="start-logo">◯</div>
     <h1>CONEX</h1>
     <div>Hello World!</div>
     <p>Starting...</p>
-</div>
+  </div>
 
-<div id="app">
-
-<header>
-    <div class="logo">◯</div>
-    <div>
+  <div id="app">
+    <header>
+      <div class="logo">◯</div>
+      <div>
         <b>CONEX</b><br>
         <small>Core Over Nova EXE Xetro</small>
+      </div>
+    </header>
+
+    <div id="chat"></div>
+
+    <div class="input-area">
+      <textarea id="message" placeholder="Talk to CONEX..." rows="1"></textarea>
+      <button class="send" onclick="sendMessage()">➤</button>
     </div>
-</header>
 
-<div id="chat"></div>
+    <nav>
+      <button onclick="openPanel('profile')">👤 Profile</button>
+      <button onclick="openPanel('memory')">💾 Memory</button>
+      <button onclick="openPanel('book')">📖 Book</button>
+      <button onclick="openPanel('blocks')">🧩 Blocks</button>
+      <button onclick="openPanel('chatgpt')">🤖 ChatGPT</button>
+      <button onclick="openPanel('settings')">⚙️ Settings</button>
+    </nav>
+  </div>
 
-<div class="input-area">
-    <textarea id="message" placeholder="Talk to CONEX..." rows="1"></textarea>
-    <button class="send" onclick="sendMessage()">➤</button>
-</div>
-
-<nav>
-    <button onclick="openPanel('profile')">👤 Profile</button>
-    <button onclick="openPanel('memory')">💾 Memory</button>
-    <button onclick="openPanel('book')">📖 Book</button>
-    <button onclick="openPanel('blocks')">🧩 Blocks</button>
-    <button onclick="openPanel('chatgpt')">🤖 ChatGPT</button>
-    <button onclick="openPanel('settings')">⚙️ Settings</button>
-</nav>
-
-</div>
-
-<div id="profile" class="panel">
+  <div id="profile" class="panel">
     <div class="panel-header">
-        <b>👤 CONEX Profile</b>
-        <button onclick="closePanels()">✕</button>
+      <b>👤 CONEX Profile</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <h3>Your information</h3>
-            <input id="profileName" placeholder="Your name">
-            <input id="profileUsername" placeholder="CONEX username">
-            <input id="profileFavorite" placeholder="Favorite things">
-            <button onclick="saveProfile()">💾 Save Profile</button>
-        </div>
+      <div class="card">
+        <h3>Your information</h3>
+        <input id="profileName" placeholder="Your name" />
+        <input id="profileUsername" placeholder="CONEX username" />
+        <input id="profileFavorite" placeholder="Favorite things" />
+        <button onclick="saveProfile()">💾 Save Profile</button>
+      </div>
 
-        <div class="card">
-            <h3>🧠 What CONEX knows</h3>
-            <div id="profileInfo">Nothing saved yet.</div>
-            <br>
-            <button class="danger" onclick="deleteProfile()">🗑️ Delete My Profile</button>
-        </div>
+      <div class="card">
+        <h3>🧠 What CONEX knows</h3>
+        <div id="profileInfo">Nothing saved yet.</div>
+        <br />
+        <button class="danger" onclick="deleteProfile()">🗑️ Delete My Profile</button>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="memory" class="panel">
+  <div id="memory" class="panel">
     <div class="panel-header">
-        <b>💾 Memory</b>
-        <button onclick="closePanels()">✕</button>
+      <b>💾 Memory</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <input id="memoryInput" placeholder="What should CONEX remember?">
-            <button onclick="saveMemory()">Save memory</button>
-        </div>
+      <div class="card">
+        <input id="memoryInput" placeholder="What should CONEX remember?" />
+        <button onclick="saveMemory()">Save memory</button>
+      </div>
 
-        <div class="card">
-            <h3>Memories</h3>
-            <div id="memoryList"></div>
-        </div>
+      <div class="card">
+        <h3>Memories</h3>
+        <div id="memoryList"></div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="book" class="panel">
+  <div id="book" class="panel">
     <div class="panel-header">
-        <b>📖 Book Generator</b>
-        <button onclick="closePanels()">✕</button>
+      <b>📖 Book Generator</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <input id="bookIdea" placeholder="Example: A robot finds a secret moon">
-            <button onclick="generateBook()">✨ Generate book</button>
-        </div>
+      <div class="card">
+        <input id="bookIdea" placeholder="Example: A robot finds a secret moon" />
+        <button onclick="generateBook()">✨ Generate book</button>
+      </div>
 
-        <div class="card">
-            <div id="bookOutput">Your book will appear here.</div>
-            <br>
-            <button onclick="speakBook()">🔊 Read aloud</button>
-        </div>
+      <div class="card">
+        <div id="bookOutput">Your book will appear here.</div>
+        <br />
+        <button onclick="speakBook()">🔊 Read aloud</button>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="blocks" class="panel">
+  <div id="blocks" class="panel">
     <div class="panel-header">
-        <b>🧩 Scratch Blocky</b>
-        <button onclick="closePanels()">✕</button>
+      <b>🧩 Scratch Blocky</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <button onclick="addBlock('WHEN MESSAGE')">+ WHEN MESSAGE</button>
-            <button onclick="addBlock('CHECK SAFETY')">+ CHECK SAFETY</button>
-            <button onclick="addBlock('REMEMBER')">+ REMEMBER</button>
-            <button onclick="addBlock('RESPOND')">+ RESPOND</button>
-        </div>
+      <div class="card">
+        <button onclick="addBlock('WHEN MESSAGE')">+ WHEN MESSAGE</button>
+        <button onclick="addBlock('CHECK SAFETY')">+ CHECK SAFETY</button>
+        <button onclick="addBlock('REMEMBER')">+ REMEMBER</button>
+        <button onclick="addBlock('RESPOND')">+ RESPOND</button>
+      </div>
 
-        <div class="card">
-            <h3>Program</h3>
-            <div id="blockList"></div>
-        </div>
+      <div class="card">
+        <h3>Program</h3>
+        <div id="blockList"></div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="chatgpt" class="panel">
+  <div id="chatgpt" class="panel">
     <div class="panel-header">
-        <b>🤖 Ask ChatGPT</b>
-        <button onclick="closePanels()">✕</button>
+      <b>🤖 Ask ChatGPT</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <h3>ChatGPT Helper</h3>
-            <textarea id="chatGPTQuestion" rows="5" placeholder="Ask ChatGPT something..." style="width:100%;background:#292d38;color:white;border:0;border-radius:12px;padding:12px;"></textarea>
-            <br><br>
-            <button onclick="askChatGPT()">🤖 Ask ChatGPT</button>
-            <div class="quick-actions">
-                <button onclick="quickQuestion('Explain this idea simply')">Explain simply</button>
-                <button onclick="quickQuestion('Give me a short, creative answer')">Creative</button>
-                <button onclick="quickQuestion('Give me a helpful plan')">Plan</button>
-            </div>
+      <div class="card">
+        <h3>ChatGPT Helper</h3>
+        <textarea id="chatGPTQuestion" rows="5" placeholder="Ask ChatGPT something..." style="width:100%;background:#292d38;color:white;border:0;border-radius:12px;padding:12px;"></textarea>
+        <br /><br />
+        <button onclick="askChatGPT()">🤖 Ask ChatGPT</button>
+        <div class="quick-actions">
+          <button onclick="quickQuestion('Explain this idea simply')">Explain simply</button>
+          <button onclick="quickQuestion('Give me a short, creative answer')">Creative</button>
+          <button onclick="quickQuestion('Give me a helpful plan')">Plan</button>
         </div>
+      </div>
 
-        <div class="card">
-            <h3>Response</h3>
-            <div id="chatGPTAnswer" class="answer">ChatGPT isn't connected yet. CONEX local AI is still active.</div>
-        </div>
+      <div class="card">
+        <h3>Response</h3>
+        <div id="chatGPTAnswer" class="answer">ChatGPT isn't connected yet. CONEX local AI is still active.</div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="settings" class="panel">
+  <div id="settings" class="panel">
     <div class="panel-header">
-        <b>⚙️ Settings</b>
-        <button onclick="closePanels()">✕</button>
+      <b>⚙️ Settings</b>
+      <button onclick="closePanels()">✕</button>
     </div>
     <div class="panel-content">
-        <div class="card">
-            <h3>🌐 Web Access</h3>
-            <button id="webButton" onclick="toggleWeb()">OFF</button>
-            <p id="webStatus" class="status">🔒 Local-only mode.</p>
-        </div>
+      <div class="card">
+        <h3>🌐 Web Access</h3>
+        <button id="webButton" onclick="toggleWeb()">OFF</button>
+        <p id="webStatus" class="status">🔒 Local-only mode.</p>
+      </div>
 
-        <div class="card">
-            <h3>🔊 Voice</h3>
-            <button onclick="speak('Hello! I am CONEX.')">Test voice</button>
-        </div>
+      <div class="card">
+        <h3>🔊 Voice</h3>
+        <button onclick="speak('Hello! I am CONEX.')">Test voice</button>
+      </div>
 
-        <div class="card">
-            <h3>🧹 Local Data</h3>
-            <button class="danger" onclick="clearAllLocalData()">Delete CONEX local data</button>
-        </div>
+      <div class="card">
+        <h3>🧹 Local Data</h3>
+        <button class="danger" onclick="clearAllLocalData()">Delete CONEX local data</button>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-const KEY = {
-    memory:"conexMemory",
-    blocks:"conexBlocks",
-    profile:"conexProfile",
-    web:"conexWeb",
-    chat:"conexChatHistory"
-};
+  <script>
+    const KEY = {
+      memory: 'conexMemory',
+      blocks: 'conexBlocks',
+      profile: 'conexProfile',
+      web: 'conexWeb',
+      chat: 'conexChatHistory'
+    };
 
-let memories = JSON.parse(localStorage.getItem(KEY.memory) || "[]");
-let blocks = JSON.parse(localStorage.getItem(KEY.blocks) || "[]");
-let profile = JSON.parse(localStorage.getItem(KEY.profile) || "{}");
-let webAccess = localStorage.getItem(KEY.web) === "true";
-let chatHistory = JSON.parse(localStorage.getItem(KEY.chat) || "[]");
-let lastBook = "";
+    const API_URL = '';
 
-function getCurrentTimestamp(){
-    return new Date().toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
-}
+    let memories = JSON.parse(localStorage.getItem(KEY.memory) || '[]');
+    let blocks = JSON.parse(localStorage.getItem(KEY.blocks) || '[]');
+    let profile = JSON.parse(localStorage.getItem(KEY.profile) || '{}');
+    let webAccess = localStorage.getItem(KEY.web) === 'true';
+    let chatHistory = JSON.parse(localStorage.getItem(KEY.chat) || '[]');
+    let lastBook = '';
 
-function addMessage(text, type){
-    const box = document.createElement("div");
-    box.className = "message " + type;
-    box.textContent = text;
-    document.getElementById("chat").appendChild(box);
-    const chat = document.getElementById("chat");
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function saveChatHistory(question, answer){
-    if(!question && !answer) return;
-    chatHistory.push({
-        time:getCurrentTimestamp(),
-        question:String(question || "").trim(),
-        answer:String(answer || "").trim()
-    });
-    if(chatHistory.length > 20){
-        chatHistory = chatHistory.slice(-20);
+    function getCurrentTimestamp() {
+      return new Date().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
     }
-    localStorage.setItem(KEY.chat, JSON.stringify(chatHistory));
-}
 
-function buildContextSummary(){
-    const summaryParts = [];
-    if(profile.name) summaryParts.push(`User name: ${profile.name}`);
-    if(profile.username) summaryParts.push(`Username: ${profile.username}`);
-    if(profile.favorite) summaryParts.push(`Favorite things: ${profile.favorite}`);
-    if(memories.length){
-        summaryParts.push(`Memories: ${memories.slice(-6).join("; ")}`);
+    function addMessage(text, type) {
+      const box = document.createElement('div');
+      box.className = 'message ' + type;
+      box.textContent = text;
+      document.getElementById('chat').appendChild(box);
+      const chat = document.getElementById('chat');
+      chat.scrollTop = chat.scrollHeight;
     }
-    if(chatHistory.length){
-        const recent = chatHistory.slice(-4).map(entry => entry.question + " -> " + entry.answer).join(" | ");
+
+    function saveChatHistory(question, answer) {
+      if (!question && !answer) return;
+      chatHistory.push({
+        time: getCurrentTimestamp(),
+        question: String(question || '').trim(),
+        answer: String(answer || '').trim()
+      });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+      localStorage.setItem(KEY.chat, JSON.stringify(chatHistory));
+    }
+
+    function buildContextSummary() {
+      const summaryParts = [];
+      if (profile.name) summaryParts.push(`User name: ${profile.name}`);
+      if (profile.username) summaryParts.push(`Username: ${profile.username}`);
+      if (profile.favorite) summaryParts.push(`Favorite things: ${profile.favorite}`);
+      if (memories.length) summaryParts.push(`Memories: ${memories.slice(-6).join('; ')}`);
+      if (chatHistory.length) {
+        const recent = chatHistory.slice(-4).map(entry => entry.question + ' -> ' + entry.answer).join(' | ');
         summaryParts.push(`Recent conversation: ${recent}`);
-    }
-    return summaryParts.join(" | ");
-}
-
-function normalizeText(value){
-    return String(value || "").replace(/\s+/g, " ").trim();
-}
-
-function think(text){
-    const raw = normalizeText(text);
-    const lower = raw.toLowerCase();
-    const context = buildContextSummary();
-
-    if(!raw){
-        return "I’m ready when you are. Ask me anything.";
+      }
+      return summaryParts.join(' | ');
     }
 
-    if(/^\s*(hi|hello|hey|yo|good morning|good evening)\b/i.test(raw)){
-        return `Hello! I’m CONEX. ${profile.name ? "Nice to meet you, " + profile.name + "." : "What would you like to do today?"}`;
+    function normalizeText(value) {
+      return String(value || '').replace(/\s+/g, ' ').trim();
     }
 
-    if(/who are you|what are you|what is conex/i.test(lower)){
-        return "I’m CONEX — Core Over Nova EXE Xetro. I’m your local AI companion, and I can remember things, answer questions, and help you think through ideas.";
-    }
+    function think(text) {
+      const raw = normalizeText(text);
+      const lower = raw.toLowerCase();
+      const context = buildContextSummary();
 
-    if(/what is your name|your name/i.test(lower)){
-        return "My name is CONEX. ◯";
-    }
+      if (!raw) return 'I’m ready when you are. Ask me anything.';
 
-    if(/hello world/i.test(lower)){
-        return "Hello World! 🌍 Welcome to the CONEX system.";
-    }
+      if (/^\s*(hi|hello|hey|yo|good morning|good evening)\b/i.test(raw)) {
+        return `Hello! I’m CONEX. ${profile.name ? 'Nice to meet you, ' + profile.name + '.' : 'What would you like to do today?'}`;
+      }
 
-    if(/^remember\s+/i.test(raw)){
-        const memory = raw.replace(/^remember\s+/i, "").trim();
-        if(memory){
-            memories.push(memory);
-            if(memories.length > 50) memories = memories.slice(-50);
-            localStorage.setItem(KEY.memory, JSON.stringify(memories));
-            updateMemoryList();
-            return "🧠 Saved to CONEX memory.";
+      if (/who are you|what are you|what is conex/i.test(lower)) {
+        return 'I’m CONEX — Core Over Nova EXE Xetro. I’m your local AI companion, and I can remember things, answer questions, and help you think through ideas.';
+      }
+
+      if (/what is your name|your name/i.test(lower)) {
+        return 'My name is CONEX. ◯';
+      }
+
+      if (/hello world/i.test(lower)) {
+        return 'Hello World! 🌍 Welcome to the CONEX system.';
+      }
+
+      if (/^remember\s+/i.test(raw)) {
+        const memory = raw.replace(/^remember\s+/i, '').trim();
+        if (memory) {
+          memories.push(memory);
+          if (memories.length > 50) memories = memories.slice(-50);
+          localStorage.setItem(KEY.memory, JSON.stringify(memories));
+          updateMemoryList();
+          return '🧠 Saved to CONEX memory.';
         }
-        return "I can remember that for you. Tell me exactly what to keep.";
-    }
+        return 'I can remember that for you. Tell me exactly what to keep.';
+      }
 
-    if(/^forget\s+/i.test(raw)){
-        const target = raw.replace(/^forget\s+/i, "").trim().toLowerCase();
-        if(!target){
-            return "What should I forget?";
-        }
+      if (/^forget\s+/i.test(raw)) {
+        const target = raw.replace(/^forget\s+/i, '').trim().toLowerCase();
+        if (!target) return 'What should I forget?';
         const before = memories.length;
         memories = memories.filter(item => item.toLowerCase() !== target && item.toLowerCase().indexOf(target) === -1);
         localStorage.setItem(KEY.memory, JSON.stringify(memories));
         updateMemoryList();
-        return before !== memories.length ? "🗑️ I removed the matching memory." : "I couldn’t find that memory to forget.";
-    }
+        return before !== memories.length ? '🗑️ I removed the matching memory.' : 'I couldn’t find that memory to forget.';
+      }
 
-    if(/what do you remember|show my memories|my memories|memory/i.test(lower)){
-        if(!memories.length){
-            return "🧠 I don’t remember anything yet.";
-        }
-        return "🧠 I remember:\n\n" + memories.slice(-8).map((m, i) => `${i + 1}. ${m}`).join("\n");
-    }
+      if (/what do you remember|show my memories|my memories|memory/i.test(lower)) {
+        if (!memories.length) return '🧠 I don’t remember anything yet.';
+        return '🧠 I remember:\n\n' + memories.slice(-8).map((m, i) => `${i + 1}. ${m}`).join('\n');
+      }
 
-    if(/my name is\s+.+|i am\s+.+/i.test(raw)){
+      if (/my name is\s+.+|i am\s+.+/i.test(raw)) {
         const match = raw.match(/(?:my name is|i am)\s+(.+)/i);
-        const name = match ? match[1].trim() : "";
-        if(name){
-            profile.name = name;
-            localStorage.setItem(KEY.profile, JSON.stringify(profile));
-            updateProfile();
-            return `Nice to meet you, ${name}. I’ll remember that.`;
+        const name = match ? match[1].trim() : '';
+        if (name) {
+          profile.name = name;
+          localStorage.setItem(KEY.profile, JSON.stringify(profile));
+          updateProfile();
+          return `Nice to meet you, ${name}. I’ll remember that.`;
         }
-    }
+      }
 
-    if(/my name|what is my name|who am i/i.test(lower)){
-        return profile.name ? `Your saved name is ${profile.name}.` : "You haven’t saved your name yet.";
-    }
+      if (/my name|what is my name|who am i/i.test(lower)) {
+        return profile.name ? `Your saved name is ${profile.name}.` : 'You haven’t saved your name yet.';
+      }
 
-    if(/favorite|favourite/i.test(lower) && /what.*you.*know|profile/i.test(lower)){
-        return profile.favorite ? `I know you like ${profile.favorite}.` : "I don’t know your favorites yet.";
-    }
+      if (/favorite|favourite/i.test(lower) && /what.*you.*know|profile/i.test(lower)) {
+        return profile.favorite ? `I know you like ${profile.favorite}.` : 'I don’t know your favorites yet.';
+      }
 
-    if(/joke|funny/i.test(lower)){
-        return "Why did the robot go to therapy? Because it had too many unresolved circuits. 😄";
-    }
+      if (/joke|funny/i.test(lower)) {
+        return 'Why did the robot go to therapy? Because it had too many unresolved circuits. 😄';
+      }
 
-    if(/help|can you help|what can you do/i.test(lower)){
-        return "I can help with conversation, memory, profile tracking, basic brainstorming, creative prompts, and quick answers. Try asking me to remember something, explain a topic, or help plan an idea.";
-    }
+      if (/help|can you help|what can you do/i.test(lower)) {
+        return 'I can help with conversation, memory, profile tracking, basic brainstorming, creative prompts, and quick answers. Try asking me to remember something, explain a topic, or help plan an idea.';
+      }
 
-    if(/plan|brainstorm|idea|project/i.test(lower)){
-        const topic = raw.replace(/^(plan|brainstorm|idea|project)\s+/i, "").trim() || "a new idea";
+      if (/plan|brainstorm|idea|project/i.test(lower)) {
+        const topic = raw.replace(/^(plan|brainstorm|idea|project)\s+/i, '').trim() || 'a new idea';
         return `Here’s a simple plan for ${topic}:\n1. Define the goal clearly.\n2. Break it into 3 small steps.\n3. Test the first step fast.\n4. Improve based on what you learn.`;
+      }
+
+      if (/story|write|poem|book/i.test(lower)) {
+        return 'I can help create a story idea. Try: “Tell me a sci-fi story about a robot who learns empathy.”';
+      }
+
+      if (/how are you|how are you doing|are you okay/i.test(lower)) {
+        return 'I’m doing great. I’m online, learning, and ready to help you think.';
+      }
+
+      if (/goodbye|bye|exit|see you/i.test(lower)) {
+        return 'Goodbye for now. I’ll be here when you want to talk again. ◯';
+      }
+
+      if (/thank you|thanks/i.test(lower)) {
+        return 'You’re welcome. I’m happy to help.';
+      }
+
+      if (/why|how do|what is|explain/i.test(lower)) {
+        const topic = raw.replace(/^(please\s+)?(explain|what is|how do|why)\s+/i, '').trim();
+        const subject = topic || 'this idea';
+        return `Here’s a clear answer about ${subject}:\n\nA good way to think about it is to break it into one simple concept, one purpose, and one practical example. That makes it easier to understand without overcomplicating the answer.`;
+      }
+
+      if (/weather|news|search|web/i.test(lower) && webAccess) {
+        return 'Web access is enabled, so I can help search the web if your app is connected to a browser API or backend. For now, I’m using the local reasoning layer.';
+      }
+
+      const contextHint = context ? `Context: ${context}` : '';
+      return `I’m learning and I can help with that. ${contextHint ? '\n\n' + contextHint + '\n\n' : ''}A strong response is: start with the main idea, explain the key reason, and finish with a practical next step.`;
     }
 
-    if(/story|write|poem|book/i.test(lower)){
-        return "I can help create a story idea. Try: ‘Tell me a sci-fi story about a robot who learns empathy.’";
+    async function askRemoteAi(question) {
+      const url = (API_URL || '') + '/api/chat';
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Remote AI request failed.');
+      }
+
+      const data = await response.json();
+      return data.reply || 'No response received from the AI server.';
     }
 
-    if(/how are you|how are you doing|are you okay/i.test(lower)){
-        return "I’m doing great. I’m online, learning, and ready to help you think.";
+    async function sendMessage() {
+      const input = document.getElementById('message');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      input.value = '';
+      input.style.height = 'auto';
+
+      const sendButton = document.querySelector('.send');
+      sendButton.disabled = true;
+      sendButton.textContent = '...';
+
+      try {
+        let output = '';
+        if (API_URL) {
+          output = await askRemoteAi(text);
+        } else {
+          output = think(text);
+        }
+        addMessage(output, 'ai');
+        saveChatHistory(text, output);
+      } catch (error) {
+        const fallback = think(text);
+        addMessage(fallback, 'ai');
+        saveChatHistory(text, fallback);
+        console.error(error);
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = '➤';
+        input.focus();
+      }
     }
 
-    if(/goodbye|bye|exit|see you/i.test(lower)){
-        return "Goodbye for now. I’ll be here when you want to talk again. ◯";
+    function saveMemory() {
+      const input = document.getElementById('memoryInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      memories.push(text);
+      if (memories.length > 50) memories = memories.slice(-50);
+      localStorage.setItem(KEY.memory, JSON.stringify(memories));
+      input.value = '';
+      updateMemoryList();
     }
 
-    if(/thank you|thanks/i.test(lower)){
-        return "You’re welcome. I’m happy to help.";
-    }
+    function updateMemoryList() {
+      const list = document.getElementById('memoryList');
+      list.innerHTML = '';
 
-    if(/why|how do|what is|explain/i.test(lower)){
-        const topic = raw.replace(/^(please\s+)?(explain|what is|how do|why)\s+/i, "").trim();
-        const subject = topic || "this idea";
-        return `Here’s a clear answer about ${subject}:\n\nA good way to think about it is to break it into one simple concept, one purpose, and one practical example. That makes it easier to understand and remember.`;
-    }
-
-    if(/weather|news|search|web/i.test(lower) && webAccess){
-        return "Web access is enabled, so I can help search the web if your app is connected to a browser API or backend. For now, I’m using the local reasoning layer.";
-    }
-
-    const contextHint = context ? `Context: ${context}` : "";
-
-    return `I’m learning and I can help with that. ${contextHint ? "\n\n" + contextHint + "\n\n" : ""}A strong response is: start with the main idea, explain the key reason, and finish with a practical next step.`;
-}
-
-function sendMessage(){
-    const input = document.getElementById("message");
-    const text = input.value.trim();
-    if(!text) return;
-
-    addMessage(text, "user");
-    input.value = "";
-    input.style.height = "auto";
-
-    setTimeout(() => {
-        const response = think(text);
-        addMessage(response, "ai");
-        saveChatHistory(text, response);
-    }, 180);
-}
-
-function saveMemory(){
-    const input = document.getElementById("memoryInput");
-    const text = input.value.trim();
-    if(!text) return;
-
-    memories.push(text);
-    if(memories.length > 50) memories = memories.slice(-50);
-    localStorage.setItem(KEY.memory, JSON.stringify(memories));
-    input.value = "";
-    updateMemoryList();
-}
-
-function updateMemoryList(){
-    const list = document.getElementById("memoryList");
-    list.innerHTML = "";
-
-    if(!memories.length){
-        list.textContent = "No memories saved.";
+      if (!memories.length) {
+        list.textContent = 'No memories saved.';
         return;
-    }
+      }
 
-    memories.forEach((memory, index) => {
-        const p = document.createElement("p");
+      memories.forEach((memory, index) => {
+        const p = document.createElement('p');
         p.textContent = `${index + 1}. ${memory}`;
         list.appendChild(p);
-    });
-}
+      });
+    }
 
-function saveProfile(){
-    profile = {
-        name: document.getElementById("profileName").value.trim(),
-        username: document.getElementById("profileUsername").value.trim(),
-        favorite: document.getElementById("profileFavorite").value.trim()
-    };
+    function saveProfile() {
+      profile = {
+        name: document.getElementById('profileName').value.trim(),
+        username: document.getElementById('profileUsername').value.trim(),
+        favorite: document.getElementById('profileFavorite').value.trim()
+      };
 
-    localStorage.setItem(KEY.profile, JSON.stringify(profile));
-    updateProfile();
-}
+      localStorage.setItem(KEY.profile, JSON.stringify(profile));
+      updateProfile();
+    }
 
-function escapeHTML(text){
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
 
-function updateProfile(){
-    const info = document.getElementById("profileInfo");
-    document.getElementById("profileName").value = profile.name || "";
-    document.getElementById("profileUsername").value = profile.username || "";
-    document.getElementById("profileFavorite").value = profile.favorite || "";
+    function updateProfile() {
+      const info = document.getElementById('profileInfo');
+      document.getElementById('profileName').value = profile.name || '';
+      document.getElementById('profileUsername').value = profile.username || '';
+      document.getElementById('profileFavorite').value = profile.favorite || '';
 
-    if(!profile.name && !profile.username && !profile.favorite){
-        info.textContent = "Nothing saved yet.";
+      if (!profile.name && !profile.username && !profile.favorite) {
+        info.textContent = 'Nothing saved yet.';
         return;
+      }
+
+      info.innerHTML = `
+        <p><b>Name:</b> ${escapeHTML(profile.name || 'Not set')}</p>
+        <p><b>Username:</b> ${escapeHTML(profile.username || 'Not set')}</p>
+        <p><b>Favorite:</b> ${escapeHTML(profile.favorite || 'Not set')}</p>
+      `;
     }
 
-    info.innerHTML = `
-        <p><b>Name:</b> ${escapeHTML(profile.name || "Not set")}</p>
-        <p><b>Username:</b> ${escapeHTML(profile.username || "Not set")}</p>
-        <p><b>Favorite:</b> ${escapeHTML(profile.favorite || "Not set")}</p>
-    `;
-}
-
-function deleteProfile(){
-    if(!confirm("Delete your CONEX profile?")) return;
-    localStorage.removeItem(KEY.profile);
-    profile = {};
-    updateProfile();
-}
-
-function generateBook(){
-    const idea = document.getElementById("bookIdea").value.trim();
-    if(!idea) return;
-
-    lastBook = `Title: ${idea}\n\nChapter 1: The Beginning\nThe world was quiet, until a signal appeared in the sky.\n\nChapter 2: The Mystery\nThe characters discovered that the first clue was only the start of a larger secret.\n\nChapter 3: The Adventure\nA difficult challenge appeared, but they worked together to find a way forward.\n\nChapter 4: The Ending\nThe mystery was finally solved, and the truth changed everything.\n\nTHE END.`;
-
-    document.getElementById("bookOutput").textContent = lastBook;
-}
-
-function speakBook(){
-    if(lastBook){
-        speak(lastBook);
+    function deleteProfile() {
+      if (!confirm('Delete your CONEX profile?')) return;
+      localStorage.removeItem(KEY.profile);
+      profile = {};
+      updateProfile();
     }
-}
 
-function speak(text){
-    if(!("speechSynthesis" in window)){
-        alert("Voice isn’t supported.");
+    function generateBook() {
+      const idea = document.getElementById('bookIdea').value.trim();
+      if (!idea) return;
+
+      lastBook = `Title: ${idea}\n\nChapter 1: The Beginning\nThe world was quiet, until a signal appeared in the sky.\n\nChapter 2: The Mystery\nThe characters discovered that the first clue was only the beginning of a much bigger secret.\n\nChapter 3: The Choice\nThey had to decide whether to protect what they knew or risk everything to discover the truth.`;
+
+      document.getElementById('bookOutput').textContent = lastBook;
+    }
+
+    function speakBook() {
+      if (lastBook) speak(lastBook);
+    }
+
+    function speak(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Voice isn’t supported.');
         return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.speak(utterance);
-}
 
-function addBlock(name){
-    blocks.push(name);
-    localStorage.setItem(KEY.blocks, JSON.stringify(blocks));
-    updateBlocks();
-}
+    function addBlock(name) {
+      blocks.push(name);
+      localStorage.setItem(KEY.blocks, JSON.stringify(blocks));
+      updateBlocks();
+    }
 
-function updateBlocks(){
-    const list = document.getElementById("blockList");
-    list.innerHTML = "";
+    function updateBlocks() {
+      const list = document.getElementById('blockList');
+      list.innerHTML = '';
 
-    if(!blocks.length){
-        list.textContent = "No blocks yet.";
+      if (!blocks.length) {
+        list.textContent = 'No blocks yet.';
         return;
-    }
+      }
 
-    blocks.forEach((block, index) => {
-        const div = document.createElement("div");
-        div.className = "block";
+      blocks.forEach((block, index) => {
+        const div = document.createElement('div');
+        div.className = 'block';
         div.textContent = `${index + 1}. ${block}`;
         list.appendChild(div);
-    });
-}
-
-async function askChatGPT(){
-    const input = document.getElementById("chatGPTQuestion");
-    const output = document.getElementById("chatGPTAnswer");
-    const question = input.value.trim();
-
-    if(!question){
-        output.textContent = "Type something first.";
-        return;
+      });
     }
 
-    output.textContent = "CONEX is thinking...";
+    function openPanel(panelId) {
+      document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+    }
 
-    try {
-        if(webAccess){
-            const response = await fetch("/api/chat", {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({message:question})
-            });
+    function closePanels() {
+      document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+    }
 
-            if(!response.ok){
-                throw new Error("Backend unavailable");
-            }
+    function toggleWeb() {
+      webAccess = !webAccess;
+      localStorage.setItem(KEY.web, String(webAccess));
+      const button = document.getElementById('webButton');
+      const status = document.getElementById('webStatus');
+      button.textContent = webAccess ? 'ON' : 'OFF';
+      status.textContent = webAccess ? '🌐 Web access enabled.' : '🔒 Local-only mode.';
+    }
 
-            const data = await response.json();
-            output.textContent = data.reply || "No response received.";
-            return;
+    function clearAllLocalData() {
+      if (!confirm('Delete all local CONEX data?')) return;
+      localStorage.removeItem(KEY.memory);
+      localStorage.removeItem(KEY.blocks);
+      localStorage.removeItem(KEY.profile);
+      localStorage.removeItem(KEY.web);
+      localStorage.removeItem(KEY.chat);
+      memories = [];
+      blocks = [];
+      profile = {};
+      webAccess = false;
+      chatHistory = [];
+      updateMemoryList();
+      updateBlocks();
+      updateProfile();
+      toggleWeb();
+    }
+
+    async function askChatGPT() {
+      const input = document.getElementById('chatGPTQuestion');
+      const output = document.getElementById('chatGPTAnswer');
+      const question = input.value.trim();
+      if (!question) return;
+
+      output.textContent = 'Thinking...';
+
+      try {
+        if (API_URL) {
+          const answer = await askRemoteAi(question);
+          output.textContent = answer;
+        } else {
+          output.textContent = think(question);
         }
-
+      } catch (error) {
         output.textContent = think(question);
-    } catch (error) {
         console.error(error);
-        output.textContent = "ChatGPT isn’t connected yet.\n\nCONEX local AI is still working.\n\nThe backend endpoint /api/chat has not been configured yet.";
+      }
     }
-}
 
-function quickQuestion(value){
-    const field = document.getElementById("chatGPTQuestion");
-    field.value = value;
-    field.focus();
-}
-
-function toggleWeb(){
-    webAccess = !webAccess;
-    localStorage.setItem(KEY.web, webAccess);
-    updateWeb();
-}
-
-function updateWeb(){
-    document.getElementById("webButton").textContent = webAccess ? "ON" : "OFF";
-    document.getElementById("webStatus").textContent = webAccess ? "🌐 Web access enabled. External APIs can be used." : "🔒 Local-only mode.";
-}
-
-function openPanel(id){
-    closePanels();
-    document.getElementById(id).classList.add("active");
-}
-
-function closePanels(){
-    document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
-}
-
-function clearAllLocalData(){
-    if(!confirm("Delete all CONEX local data?")) return;
-    Object.values(KEY).forEach(key => localStorage.removeItem(key));
-    location.reload();
-}
-
-document.getElementById("message").addEventListener("keydown", function(event){
-    if(event.key === "Enter" && !event.shiftKey){
-        event.preventDefault();
-        sendMessage();
+    function quickQuestion(text) {
+      const input = document.getElementById('chatGPTQuestion');
+      input.value = text;
+      input.focus();
     }
-});
 
-document.getElementById("message").addEventListener("input", function(){
-    this.style.height = "auto";
-    this.style.height = Math.min(this.scrollHeight, 180) + "px";
-});
+    function boot() {
+      const startup = document.getElementById('startup');
+      const chat = document.getElementById('chat');
+      addMessage('Hi! I’m CONEX AI. What do you want to do?', 'ai');
+      updateMemoryList();
+      updateBlocks();
+      updateProfile();
+      document.getElementById('webButton').textContent = webAccess ? 'ON' : 'OFF';
+      document.getElementById('webStatus').textContent = webAccess ? '🌐 Web access enabled.' : '🔒 Local-only mode.';
 
-window.addEventListener("load", () => {
-    updateMemoryList();
-    updateBlocks();
-    updateProfile();
-    updateWeb();
+      const textarea = document.getElementById('message');
+      textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 180) + 'px';
+      });
+      textarea.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
 
-    setTimeout(() => {
-        const startup = document.getElementById("startup");
-        startup.style.opacity = "0";
+      setTimeout(() => {
+        startup.style.opacity = '0';
         setTimeout(() => startup.remove(), 500);
-    }, 1800);
-});
-</script>
+      }, 500);
 
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    boot();
+  </script>
 </body>
 </html>
