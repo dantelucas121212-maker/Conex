@@ -1,4 +1,61 @@
-const http = require("node:http");
+<script>
+async function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const chat = document.getElementById("chat");
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Show your message
+    chat.innerHTML += `
+        <div class="user-message">
+            You: ${escapeHTML(message)}
+        </div>
+    `;
+
+    input.value = "";
+
+    // Show thinking message
+    const thinking = document.createElement("div");
+    thinking.className = "ai-message";
+    thinking.textContent = "CONEX AI: Thinking...";
+    chat.appendChild(thinking);
+
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Server error");
+        }
+
+        const data = await response.json();
+
+        thinking.textContent =
+            "CONEX AI: " + (data.reply || "No response received.");
+
+    } catch (error) {
+        thinking.textContent =
+            "CONEX AI: Connection error.";
+        console.error(error);
+    }
+
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function escapeHTML(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
