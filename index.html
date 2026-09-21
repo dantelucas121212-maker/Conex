@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+const http = require("node:http");
+
+const server = http.createServer((req, res) => {
+  res.setHeader("Content-Type", "application/json");
+
+  if (req.url === "/api/health") {
+    return res.end(JSON.stringify({
+      ok: true,
+      server: "CONEX MOCK SERVER",
+      ai: "simulation"
+    }));
+  }
+
+  if (req.url === "/api/chat" && req.method === "POST") {
+    return res.end(JSON.stringify({
+      reply: "Hello! CONEX mock server is working. 🤖"
+    }));
+  }
+
+  res.statusCode = 404;
+  res.end(JSON.stringify({ error: "Not found" }));
+});
+
+server.listen(3000, "127.0.0.1", () => {
+  console.log("CONEX mock server: http://127.0.0.1:3000");
+});<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
