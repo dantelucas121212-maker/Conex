@@ -1,4 +1,12 @@
-https://api.openai.com/v1/responses name: Deploy static site to Pages
+fetch("/api/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    message: userMessage
+  })
+}); https://api.openai.com/v1/responses name: Deploy static site to Pages
 
 on:
   push:
