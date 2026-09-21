@@ -1,4 +1,12 @@
-<script>
+<div id="chat"></div>
+
+<input
+    id="messageInput"
+    type="text"
+    placeholder="Talk to CONEX AI..."
+>
+
+<button onclick="sendMessage()">SEND</button><script>
 async function sendMessage() {
     const input = document.getElementById("messageInput");
     const chat = document.getElementById("chat");
