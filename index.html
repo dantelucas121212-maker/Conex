@@ -14,6 +14,22 @@ async function sendToCONEX(message) {
     }
 
     return data.reply;
+}async function sendToCONEX(message) {
+    const response = await fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "CONEX AI error");
+    }
+
+    return data.reply;
 }<script>
 async function sendMessage() {
     const input = document.getElementById("messageInput");
