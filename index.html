@@ -1,4 +1,108 @@
-document.querySelector('.send').addEventListener('click', sendMessage);
+<script>
+/* ================================
+   CONEX AI — LOCAL TEST CONNECTION
+   ================================ */
+
+const CONEX_AI = {
+  online: true,
+  name: "CONEX AI",
+
+  async chat(message) {
+    message = String(message || "").trim();
+
+    if (!message) {
+      return "I'm ready. Talk to me.";
+    }
+
+    const text = message.toLowerCase();
+
+    if (text.includes("hello") || text.includes("hi")) {
+      return "Hello. CONEX AI is online.";
+    }
+
+    if (text.includes("who are you")) {
+      return "I am CONEX AI, running inside the CONEX test app.";
+    }
+
+    if (text.includes("conex")) {
+      return "CONEX is online. Core Over Nova EXE Xetro.";
+    }
+
+    if (text.includes("test")) {
+      return "Test successful. The CONEX AI connection is working.";
+    }
+
+    if (text.includes("server")) {
+      return "This test version does not require a server.";
+    }
+
+    if (text.includes("help")) {
+      return "I'm ready for commands. Try saying: hello, test, or who are you.";
+    }
+
+    return `CONEX AI received: "${message}"`;
+  }
+};
+
+
+/* ================================
+   SEND MESSAGE
+   ================================ */
+
+async function sendToCONEX(message) {
+  const reply = await CONEX_AI.chat(message);
+
+  return reply;
+}
+
+
+/* ================================
+   OPTIONAL CHAT UI CONNECTION
+   ================================ */
+
+async function conexSendMessage() {
+  const input = document.querySelector("#chatInput");
+  const chat = document.querySelector("#chat");
+
+  if (!input || !chat) return;
+
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  chat.innerHTML += `
+    <div class="user-message">
+      ${escapeCONEX(message)}
+    </div>
+  `;
+
+  input.value = "";
+
+  const reply = await sendToCONEX(message);
+
+  chat.innerHTML += `
+    <div class="conex-message">
+      <b>CONEX AI:</b> ${escapeCONEX(reply)}
+    </div>
+  `;
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+
+/* ================================
+   SAFE TEXT
+   ================================ */
+
+function escapeCONEX(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>(document.querySelector('.send').addEventListener('click', sendMessage);
 
 document.querySelectorAll('.panel button').forEach(btn => {
   btn.addEventListener('click', () => {});
