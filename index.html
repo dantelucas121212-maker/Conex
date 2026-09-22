@@ -1,4 +1,54 @@
-<!DOCTYPE html>
+document.querySelector('.send').addEventListener('click', sendMessage);
+
+document.querySelectorAll('.panel button').forEach(btn => {
+  btn.addEventListener('click', () => {});
+});row.innerHTML = `<span>${item}</span><button ...>✕</button>`;async const response = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: question, history })
+});function askRemoteAi(question) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const history = chatHistory.slice(-12).flatMap(item => [
+      { role: 'user', content: item.question },
+      { role: 'assistant', content: item.answer }
+    ]);
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: question, history }),
+      signal: controller.signal
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Remote AI request failed.');
+    }
+
+    return data.reply || 'No response received from CONEX.';
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The AI request timed out.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}<input id="profileName" aria-label="Profile name" placeholder="Name" />
+<button type="button" aria-label="Save profile" onclick="saveProfile()">Save profile</button>function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+}fetch('/api/chat')const API_URL = window.CONEX_API_URL || '/api/chat';fetch(API_URL, ...)C[...]function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    console.warn('localStorage unavailable');
+  }
+}<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
