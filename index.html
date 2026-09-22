@@ -1,454 +1,4 @@
-async function sendToCONEX(message) {
-    const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.error || "CONEX AI error");
-    }
-
-    return data.reply;
-}async function sendToCONEX(message) {
-    const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.error || "CONEX AI error");
-    }
-
-    return data.reply;
-}<script>
-async function sendMessage() {
-    const input = document.getElementById("messageInput");
-    const chat = document.getElementById("chat");
-
-    const message = input.value.trim();
-    if (!message) return;
-
-    // Show your message
-    chat.innerHTML += `
-        <div class="user-message">
-            You: ${escapeHTML(message)}
-        </div>
-    `;
-
-    input.value = "";
-
-    // Show thinking message
-    const thinking = document.createElement("div");
-    thinking.className = "ai-message";
-    thinking.textContent = "CONEX AI: Thinking...";
-    chat.appendChild(thinking);
-
-    try {
-        const response = await fetch("/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: message
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Server error");
-        }
-
-        const data = await response.json();
-
-        thinking.textContent =
-            "CONEX AI: " + (data.reply || "No response received.");
-
-    } catch (error) {
-        thinking.textContent =
-            "CONEX AI: Connection error.";
-        console.error(error);
-    }
-
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function escapeHTML(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
-</script>// server.js
-const express = require("express");
-const OpenAI = require("openai");
-const path = require("path");
-
-const app = express();
-
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.post("/chat", async (req, res) => {
-    try {
-        const message = String(req.body.message || "").trim();
-
-        if (!message) {
-            return res.status(400).json({
-                error: "Message is empty"
-            });
-        }
-
-        const response = await client.responses.create({
-            model: "gpt-5.6",
-            instructions:
-                "You are CONEX AI, the AI inside the CONEX game. " +
-                "Answer the player naturally and helpfully.",
-            input: message
-        });
-
-        res.json({
-            reply: response.output_text
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: "CONEX AI could not respond."
-        });
-    }
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`CONEX AI running on port ${PORT}`);
-});<div id="chat"></div>
-
-<input
-    id="messageInput"
-    type="text"
-    placeholder="Talk to CONEX AI..."
->
-
-<button onclick="sendMessage()">SEND</button><script>
-async function sendMessage() {
-    const input = document.getElementById("messageInput");
-    const chat = document.getElementById("chat");
-
-    const message = input.value.trim();
-    if (!message) return;
-
-    // Show your message
-    chat.innerHTML += `
-        <div class="user-message">
-            You: ${escapeHTML(message)}
-        </div>
-    `;
-
-    input.value = "";
-
-    // Show thinking message
-    const thinking = document.createElement("div");
-    thinking.className = "ai-message";
-    thinking.textContent = "CONEX AI: Thinking...";
-    chat.appendChild(thinking);
-
-    try {
-        const response = await fetch("/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: message
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Server error");
-        }
-
-        const data = await response.json();
-
-        thinking.textContent =
-            "CONEX AI: " + (data.reply || "No response received.");
-
-    } catch (error) {
-        thinking.textContent =
-            "CONEX AI: Connection error.";
-        console.error(error);
-    }
-
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function escapeHTML(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
-</script>const http = require("node:http");
-const fs = require("node:fs");
-const path = require("node:path");
-
-const HOST = "0.0.0.0";
-const PORT = process.env.PORT || 3000;
-
-const server = http.createServer((req, res) => {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
-  // OPTIONS
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    return res.end();
-  }
-
-  // Health check
-  if (req.method === "GET" && req.url === "/api/health") {
-    res.writeHead(200, {
-      "Content-Type": "application/json"
-    });
-
-    return res.end(JSON.stringify({
-      ok: true,
-      name: "CONEX",
-      server: "CONEX TEST SERVER",
-      ai: "simulation",
-      status: "online"
-    }));
-  }
-
-  // Fake AI
-  if (req.method === "POST" && req.url === "/api/chat") {
-    let body = "";
-
-    req.on("data", chunk => {
-      body += chunk;
-    });
-
-    req.on("end", () => {
-      let message = "";
-
-      try {
-        const data = JSON.parse(body);
-        message = data.message || "";
-      } catch {
-        message = "";
-      }
-
-      const reply =
-        message.trim()
-          ? `CONEX AI: I received "${message}". This is the CONEX test AI. 🤖`
-          : "CONEX AI: Hello! I'm ready. 🤖";
-
-      res.writeHead(200, {
-        "Content-Type": "application/json"
-      });
-
-      res.end(JSON.stringify({
-        ok: true,
-        reply
-      }));
-    });
-
-    return;
-  }
-
-  // Serve index.html
-  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
-    const file = path.join(__dirname, "index.html");
-
-    fs.readFile(file, (err, data) => {
-      if (err) {
-        res.writeHead(500, {
-          "Content-Type": "text/plain"
-        });
-
-        return res.end("CONEX could not load index.html");
-      }
-
-      res.writeHead(200, {
-        "Content-Type": "text/html; charset=utf-8"
-      });
-
-      res.end(data);
-    });
-
-    return;
-  }
-
-  // Not found
-  res.writeHead(404, {
-    "Content-Type": "application/json"
-  });
-
-  res.end(JSON.stringify({
-    error: "CONEX route not found"
-  }));
-});
-
-server.listen(PORT, HOST, () => {
-  console.log("================================");
-  console.log("       CONEX SERVER ONLINE");
-  console.log("================================");
-  console.log(`Port: ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-  console.log("API: /api/chat");
-  console.log("Health: /api/health");
-}); server.js const http = require("node:http");
-const fs = require("node:fs");
-const path = require("node:path");
-
-const HOST = "0.0.0.0";
-const PORT = process.env.PORT || 3000;
-
-const server = http.createServer((req, res) => {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
-  // OPTIONS
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    return res.end();
-  }
-
-  // Health check
-  if (req.method === "GET" && req.url === "/api/health") {
-    res.writeHead(200, {
-      "Content-Type": "application/json"
-    });
-
-    return res.end(JSON.stringify({
-      ok: true,
-      name: "CONEX",
-      server: "CONEX TEST SERVER",
-      ai: "simulation",
-      status: "online"
-    }));
-  }
-
-  // Fake AI
-  if (req.method === "POST" && req.url === "/api/chat") {
-    let body = "";
-
-    req.on("data", chunk => {
-      body += chunk;
-    });
-
-    req.on("end", () => {
-      let message = "";
-
-      try {
-        const data = JSON.parse(body);
-        message = data.message || "";
-      } catch {
-        message = "";
-      }
-
-      const reply =
-        message.trim()
-          ? `CONEX AI: I received "${message}". This is the CONEX test AI. 🤖`
-          : "CONEX AI: Hello! I'm ready. 🤖";
-
-      res.writeHead(200, {
-        "Content-Type": "application/json"
-      });
-
-      res.end(JSON.stringify({
-        ok: true,
-        reply
-      }));
-    });
-
-    return;
-  }
-
-  // Serve index.html
-  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
-    const file = path.join(__dirname, "index.html");
-
-    fs.readFile(file, (err, data) => {
-      if (err) {
-        res.writeHead(500, {
-          "Content-Type": "text/plain"
-        });
-
-        return res.end("CONEX could not load index.html");
-      }
-
-      res.writeHead(200, {
-        "Content-Type": "text/html; charset=utf-8"
-      });
-
-      res.end(data);
-    });
-
-    return;
-  }
-
-  // Not found
-  res.writeHead(404, {
-    "Content-Type": "application/json"
-  });
-
-  res.end(JSON.stringify({
-    error: "CONEX route not found"
-  }));
-});
-
-server.listen(PORT, HOST, () => {
-  console.log("================================");
-  console.log("       CONEX SERVER ONLINE");
-  console.log("================================");
-  console.log(`Port: ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-  console.log("API: /api/chat");
-  console.log("Health: /api/health");
-}); node mock-server.js mock-server.js const http = require("node:http");
-
-const server = http.createServer((req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
-  if (req.url === "/api/health") {
-    return res.end(JSON.stringify({
-      ok: true,
-      server: "CONEX MOCK SERVER",
-      ai: "simulation"
-    }));
-  }
-
-  if (req.url === "/api/chat" && req.method === "POST") {
-    return res.end(JSON.stringify({
-      reply: "Hello! CONEX mock server is working. 🤖"
-    }));
-  }
-
-  res.statusCode = 404;
-  res.end(JSON.stringify({ error: "Not found" }));
-});
-
-server.listen(3000, "127.0.0.1", () => {
-  console.log("CONEX mock server: http://127.0.0.1:3000");
-});<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -456,85 +6,630 @@ server.listen(3000, "127.0.0.1", () => {
   <title>CONEX</title>
   <style>
     * { box-sizing: border-box; }
-    :root { --bg:#0f1117; --panel:#181a20; --card:#1c1f27; --ink:#f3f6ff; --muted:#aab4c8; --blue:#3157d5; --blue-soft:#4b6ce9; --shadow:0 18px 40px rgba(0,0,0,.28); }
-    html,body { margin:0; min-height:100%; background:radial-gradient(circle at top,#171d2e 0%,var(--bg) 35%); color:var(--ink); font-family:system-ui,sans-serif; }
-    body { display:flex; justify-content:center; }
-    button,input,textarea { font:inherit; } button { border:0; border-radius:12px; padding:11px 14px; background:#292d38; color:white; cursor:pointer; transition:.2s ease; } button:hover { filter:brightness(1.08); } button:active { transform:scale(.97); } button:disabled { opacity:.55; cursor:wait; }
-    #startup { position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at center,#141a26 0%,#101114 70%); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; transition:opacity .5s ease; }
-    .start-logo,.logo { border:4px solid white; border-radius:50%; display:grid; place-items:center; }
-    .start-logo { width:76px; height:76px; border-width:6px; font-size:28px; box-shadow:var(--shadow); }
-    #app { width:100%; min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:13px 16px; background:var(--panel); display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,.04); }
-    .logo { width:42px; height:42px; font-size:18px; }
-    #chat { flex:1; overflow-y:auto; width:100%; max-width:1000px; margin:0 auto; padding:18px 15px 12px; }
-    .message { max-width:85%; padding:12px 14px; margin:8px 0; border-radius:16px; white-space:pre-wrap; line-height:1.45; box-shadow:var(--shadow); }
-    .user { margin-left:auto; background:linear-gradient(135deg,var(--blue-soft),var(--blue)); } .ai { background:#242730; border:1px solid rgba(255,255,255,.04); } .ai::before { content:"CONEX"; display:block; font-size:11px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
-    .input-area { display:flex; gap:7px; padding:9px; background:var(--panel); border-top:1px solid rgba(255,255,255,.04); } textarea { flex:1; resize:none; min-height:46px; max-height:180px; border:0; outline:0; border-radius:13px; padding:12px; background:#292d38; color:white; } .send { background:linear-gradient(135deg,var(--blue-soft),var(--blue)); width:58px; min-width:58px; }
-    nav { display:flex; justify-content:center; gap:4px; background:var(--panel); padding:7px; overflow-x:auto; border-top:1px solid rgba(255,255,255,.04); } nav button { background:transparent; white-space:nowrap; opacity:.9; }
-    .panel { position:fixed; inset:0; z-index:100; display:none; flex-direction:column; background:var(--bg); } .panel.active { display:flex; } .panel-header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:var(--panel); border-bottom:1px solid rgba(255,255,255,.04); } .panel-content { padding:15px; overflow-y:auto; width:100%; max-width:900px; margin:auto; } .card { background:var(--card); border-radius:15px; padding:15px; margin-bottom:12px; box-shadow:var(--shadow); }
-    input { width:100%; padding:12px; border:0; border-radius:12px; background:#292d38; color:white; margin:6px 0; } .block { padding:12px; border-radius:10px; background:linear-gradient(135deg,var(--blue-soft),var(--blue)); margin:7px 0; } .status { opacity:.7; font-size:13px; margin-top:8px; } .danger { background:#7d3030; } .answer { white-space:pre-wrap; line-height:1.5; } .quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; } .quick-actions button { background:#2c303a; padding:8px 10px; font-size:13px; }
-    @media (min-width:800px) { #chat { padding:25px; } .input-area { padding-left:15%; padding-right:15%; } .message { max-width:70%; } }
+    :root {
+      --bg:#0f1117;
+      --panel:#181a20;
+      --card:#1c1f27;
+      --ink:#f3f6ff;
+      --muted:#aab4c8;
+      --blue:#3157d5;
+      --blue-soft:#4b6ce9;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+    }
+
+    html, body {
+      margin:0;
+      min-height:100%;
+      background:radial-gradient(circle at top,#171d2e 0%, var(--bg) 35%);
+      color:var(--ink);
+      font-family:system-ui, sans-serif;
+    }
+
+    body {
+      display:flex;
+      justify-content:center;
+    }
+
+    button, input, textarea {
+      font:inherit;
+    }
+
+    button {
+      border:0;
+      border-radius:12px;
+      padding:11px 14px;
+      background:#292d38;
+      color:white;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    button:hover {
+      filter:brightness(1.08);
+    }
+
+    #startup {
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      background:radial-gradient(circle at center,#141a26 0%,#101114 70%);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+      color:var(--ink);
+      text-align:center;
+    }
+
+    .start-logo, .logo {
+      border:4px solid white;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+    }
+
+    .start-logo {
+      width:76px;
+      height:76px;
+      border-width:6px;
+      font-size:28px;
+      box-shadow:var(--shadow);
+    }
+
+    #app {
+      width:100%;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header {
+      padding:13px 16px;
+      background:var(--panel);
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+
+    .logo {
+      width:42px;
+      height:42px;
+      font-size:18px;
+    }
+
+    #chat {
+      flex:1;
+      overflow-y:auto;
+      width:100%;
+      max-width:1000px;
+      margin:0 auto;
+      padding:18px 15px 12px;
+    }
+
+    .message {
+      max-width:85%;
+      padding:12px 14px;
+      margin:8px 0;
+      border-radius:16px;
+      white-space:pre-wrap;
+      line-height:1.45;
+      box-shadow:var(--shadow);
+    }
+
+    .user {
+      margin-left:auto;
+      background:linear-gradient(135deg,var(--blue-soft),var(--blue));
+    }
+
+    .ai {
+      background:#242730;
+      border:1px solid rgba(255,255,255,.04);
+    }
+
+    .ai::before {
+      content:"CONEX";
+      display:block;
+      font-weight:700;
+      font-size:.72rem;
+      letter-spacing:.08em;
+      opacity:.8;
+      margin-bottom:4px;
+    }
+
+    .input-area {
+      display:flex;
+      gap:7px;
+      padding:9px;
+      background:var(--panel);
+      border-top:1px solid rgba(255,255,255,.04);
+    }
+
+    textarea {
+      flex:1;
+      resize:none;
+      min-height:46px;
+      max-height:180px;
+      border:0;
+      border-radius:12px;
+      background:#292d38;
+      color:white;
+      padding:12px 14px;
+      outline:none;
+    }
+
+    nav {
+      display:flex;
+      justify-content:center;
+      gap:4px;
+      background:var(--panel);
+      padding:7px;
+      overflow-x:auto;
+      border-top:1px solid rgba(255,255,255,.04);
+    }
+
+    nav button {
+      background:transparent;
+      white-space:nowrap;
+      opacity:.9;
+    }
+
+    .panel {
+      position:fixed;
+      inset:0;
+      z-index:100;
+      display:none;
+      flex-direction:column;
+      background:var(--bg);
+    }
+
+    .panel.active {
+      display:flex;
+    }
+
+    .panel-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px;
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+
+    .panel-content {
+      padding:12px;
+      overflow:auto;
+    }
+
+    .card {
+      background:linear-gradient(135deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:12px;
+      box-shadow:var(--shadow);
+    }
+
+    input {
+      width:100%;
+      padding:12px;
+      border:0;
+      border-radius:12px;
+      background:#292d38;
+      color:white;
+      margin:6px 0;
+    }
+
+    .block {
+      padding:12px;
+      border-radius:10px;
+      background:linear-gradient(135deg, rgba(49,87,213,.2), rgba(75,108,233,.1));
+      margin:8px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    @media (min-width:800px) {
+      #chat {
+        padding:25px;
+      }
+
+      .input-area {
+        padding-left:15%;
+        padding-right:15%;
+      }
+
+      .message {
+        max-width:70%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div id="startup"><div class="start-logo">◯</div><h1>CONEX</h1><div>Hello World!</div><p>Starting...</p></div>
-  <div id="app">
-    <header><div class="logo">◯</div><div><b>CONEX</b><br><small>Core Over Nova EXE Xetro</small></div></header>
-    <div id="chat"></div>
-    <div class="input-area"><textarea id="message" placeholder="Talk to CONEX..." rows="1"></textarea><button class="send" onclick="sendMessage()">➤</button></div>
-    <nav><button onclick="openPanel('profile')">👤 Profile</button><button onclick="openPanel('memory')">💾 Memory</button><button onclick="openPanel('book')">📖 Book</button><button onclick="openPanel('blocks')">🧩 Blocks</button><button onclick="openPanel('chatgpt')">🤖 ChatGPT</button><button onclick="openPanel('settings')">⚙️ Settings</button></nav>
+  <div id="startup">
+    <div class="start-logo">◯</div>
+    <h1>CONEX</h1>
+    <div>Hello World!</div>
+    <p>Starting...</p>
   </div>
 
-  <div id="profile" class="panel"><div class="panel-header"><b>👤 CONEX Profile</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><h3>Your information</h3><input id="profileName" placeholder="Your name"><input id="profileUsername" placeholder="CONEX username"><input id="profileFavorite" placeholder="Favorite things"><button onclick="saveProfile()">💾 Save Profile</button></div><div class="card"><h3>🧠 What CONEX knows</h3><div id="profileInfo">Nothing saved yet.</div><br><button class="danger" onclick="deleteProfile()">🗑️ Delete My Profile</button></div></div></div>
-  <div id="memory" class="panel"><div class="panel-header"><b>💾 Memory</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><input id="memoryInput" placeholder="What should CONEX remember?"><button onclick="saveMemory()">Save memory</button></div><div class="card"><h3>Memories</h3><div id="memoryList"></div></div></div></div>
-  <div id="book" class="panel"><div class="panel-header"><b>📖 Book Generator</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><input id="bookIdea" placeholder="Example: A robot finds a secret moon"><button onclick="generateBook()">✨ Generate book</button></div><div class="card"><div id="bookOutput">Your book will appear here.</div><br><button onclick="speakBook()">🔊 Read aloud</button></div></div></div>
-  <div id="blocks" class="panel"><div class="panel-header"><b>🧩 Scratch Blocky</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><button onclick="addBlock('WHEN MESSAGE')">+ WHEN MESSAGE</button> <button onclick="addBlock('CHECK SAFETY')">+ CHECK SAFETY</button> <button onclick="addBlock('REMEMBER')">+ REMEMBER</button> <button onclick="addBlock('RESPOND')">+ RESPOND</button></div><div class="card"><h3>Program</h3><div id="blockList"></div></div></div></div>
-  <div id="chatgpt" class="panel"><div class="panel-header"><b>🤖 Ask ChatGPT</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><h3>ChatGPT Helper</h3><textarea id="chatGPTQuestion" rows="5" placeholder="Ask ChatGPT something..." style="width:100%"></textarea><br><br><button onclick="askChatGPT()">🤖 Ask ChatGPT</button><div class="quick-actions"><button onclick="quickQuestion('Explain this idea simply')">Explain simply</button><button onclick="quickQuestion('Give me a short, creative answer')">Creative</button><button onclick="quickQuestion('Give me a helpful plan')">Plan</button></div></div><div class="card"><h3>Response</h3><div id="chatGPTAnswer" class="answer">Ask CONEX anything.</div></div></div></div>
-  <div id="settings" class="panel"><div class="panel-header"><b>⚙️ Settings</b><button onclick="closePanels()">✕</button></div><div class="panel-content"><div class="card"><h3>🌐 Web Access</h3><button id="webButton" onclick="toggleWeb()">OFF</button><p id="webStatus" class="status">🔒 Local-only mode.</p></div><div class="card"><h3>🔊 Voice</h3><button onclick="speak('Hello! I am CONEX.')">Test voice</button></div><div class="card"><h3>🧹 Local Data</h3><button class="danger" onclick="clearAllLocalData()">Delete CONEX local data</button></div></div></div>
+  <div id="app">
+    <header>
+      <div class="logo">◯</div>
+      <div>
+        <b>CONEX</b><br>
+        <small>Core Over Nova EXE Xetro</small>
+      </div>
+    </header>
+
+    <div id="chat"></div>
+
+    <div class="input-area">
+      <textarea id="message" placeholder="Talk to CONEX..." rows="1"></textarea>
+      <button class="send" onclick="sendMessage()">➤</button>
+    </div>
+
+    <nav>
+      <button onclick="openPanel('profile')">👤 Profile</button>
+      <button onclick="openPanel('memory')">💾 Memory</button>
+      <button onclick="openPanel('book')">📖 Book</button>
+      <button onclick="openPanel('blocks')">🧩 Blocks</button>
+      <button onclick="openPanel('chatgpt')">🤖 Ask</button>
+      <button onclick="openPanel('settings')">⚙️ Settings</button>
+    </nav>
+  </div>
+
+  <div id="profile" class="panel">
+    <div class="panel-header">
+      <b>👤 CONEX Profile</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <h3>Your information</h3>
+        <input id="profileName" placeholder="Name" />
+        <input id="profileUsername" placeholder="Username" />
+        <input id="profileFavorite" placeholder="Favorite thing" />
+        <button onclick="saveProfile()">Save profile</button>
+        <button onclick="deleteProfile()">Delete profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="memory" class="panel">
+    <div class="panel-header">
+      <b>💾 Memory</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <input id="memoryInput" placeholder="Add a memory..." />
+        <button onclick="saveMemory()">Save memory</button>
+        <div id="memoryList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="book" class="panel">
+    <div class="panel-header">
+      <b>📖 Book Generator</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <input id="bookIdea" placeholder="Book idea" />
+        <button onclick="generateBook()">Generate</button>
+        <button onclick="speakBook()">Read aloud</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="blocks" class="panel">
+    <div class="panel-header">
+      <b>🧩 Scratch Blocky</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <button onclick="addBlock('Move forward')">+ Move</button>
+        <button onclick="addBlock('Turn left')">+ Turn left</button>
+        <button onclick="addBlock('Turn right')">+ Turn right</button>
+        <button onclick="addBlock('Say hello')">+ Say</button>
+        <div id="blockList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chatgpt" class="panel">
+    <div class="panel-header">
+      <b>🤖 Ask ChatGPT</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <h3>ChatGPT Helper</h3>
+        <input id="chatGPTQuestion" placeholder="Ask a question..." />
+        <button onclick="askChatGPT()">Ask</button>
+        <div id="chatGPTAnswer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings" class="panel">
+    <div class="panel-header">
+      <b>⚙️ Settings</b>
+      <button onclick="closePanels()">✕</button>
+    </div>
+    <div class="panel-content">
+      <div class="card">
+        <h3>🌐 Web Access</h3>
+        <button id="webButton" onclick="toggleWeb()">OFF</button>
+        <p id="webStatus">Web access disabled.</p>
+        <button onclick="clearAllLocalData()">Delete local data</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const KEY = { memory:'conexMemory', blocks:'conexBlocks', profile:'conexProfile', web:'conexWeb', chat:'conexChatHistory' };
-    let memories = readJSON(KEY.memory, []), blocks = readJSON(KEY.blocks, []), profile = readJSON(KEY.profile, {}), webAccess = localStorage.getItem(KEY.web) === 'true', chatHistory = readJSON(KEY.chat, []), lastBook = '';
+    const KEY = {
+      memory: 'conexMemory',
+      blocks: 'conexBlocks',
+      profile: 'conexProfile',
+      web: 'conexWeb',
+      chat: 'conexChatHistory'
+    };
 
-    function readJSON(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } }
-    function addMessage(text, type) { const box = document.createElement('div'); box.className = 'message ' + type; box.textContent = text; document.getElementById('chat').appendChild(box); const chat = document.getElementById('chat'); chat.scrollTop = chat.scrollHeight; }
-    function saveChatHistory(question, answer) { chatHistory.push({ question, answer }); chatHistory = chatHistory.slice(-20); localStorage.setItem(KEY.chat, JSON.stringify(chatHistory)); }
+    let memories = readJSON(KEY.memory, []);
+    let blocks = readJSON(KEY.blocks, []);
+    let profile = readJSON(KEY.profile, {});
+    let webAccess = localStorage.getItem(KEY.web) === 'true';
+    let chatHistory = readJSON(KEY.chat, []);
+    let lastBook = '';
+
+    function readJSON(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch {
+        return fallback;
+      }
+    }
+
+    function addMessage(text, type) {
+      const box = document.createElement('div');
+      box.className = 'message ' + type;
+      box.textContent = text;
+      const chat = document.getElementById('chat');
+      chat.appendChild(box);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function saveChatHistory(question, answer) {
+      chatHistory.push({ question, answer });
+      chatHistory = chatHistory.slice(-20);
+      localStorage.setItem(KEY.chat, JSON.stringify(chatHistory));
+    }
 
     async function askRemoteAi(question) {
-      const history = chatHistory.slice(-12).flatMap(item => [{ role:'user', content:item.question }, { role:'assistant', content:item.answer }]);
-      const response = await fetch('/api/chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ message:question, history }) });
+      const history = chatHistory.slice(-12).flatMap(item => [
+        { role: 'user', content: item.question },
+        { role: 'assistant', content: item.answer }
+      ]);
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question, history })
+      });
+
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Remote AI request failed.');
       return data.reply || 'No response received from CONEX.';
     }
 
     async function sendMessage() {
-      const input = document.getElementById('message'), text = input.value.trim(); if (!text) return;
-      addMessage(text, 'user'); input.value = ''; input.style.height = 'auto'; const button = document.querySelector('.send'); button.disabled = true; button.textContent = '...';
-      try { const output = await askRemoteAi(text); addMessage(output, 'ai'); saveChatHistory(text, output); }
-      catch (error) { addMessage('CONEX could not connect to the AI server. Please check that the server is running and configured.', 'ai'); console.error(error); }
-      finally { button.disabled = false; button.textContent = '➤'; input.focus(); }
+      const input = document.getElementById('message');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      input.value = '';
+      input.style.height = 'auto';
+
+      const button = document.querySelector('.send');
+      button.disabled = true;
+      button.textContent = '...';
+
+      try {
+        const output = await askRemoteAi(text);
+        addMessage(output, 'ai');
+        saveChatHistory(text, output);
+      } catch (error) {
+        addMessage('CONEX could not connect to the AI server. Please check that the server is running and configured.', 'ai');
+        console.error(error);
+      } finally {
+        button.disabled = false;
+        button.textContent = '➤';
+        input.focus();
+      }
     }
 
-    function saveMemory() { const input = document.getElementById('memoryInput'), text = input.value.trim(); if (!text) return; memories.push(text); memories = memories.slice(-50); localStorage.setItem(KEY.memory, JSON.stringify(memories)); input.value = ''; updateMemoryList(); }
-    function updateMemoryList() { const list = document.getElementById('memoryList'); list.innerHTML = ''; if (!memories.length) { list.textContent = 'No memories saved.'; return; } memories.forEach((memory, i) => { const p = document.createElement('p'); p.textContent = `${i + 1}. ${memory}`; list.appendChild(p); }); }
-    function saveProfile() { profile = { name:document.getElementById('profileName').value.trim(), username:document.getElementById('profileUsername').value.trim(), favorite:document.getElementById('profileFavorite').value.trim() }; localStorage.setItem(KEY.profile, JSON.stringify(profile)); updateProfile(); }
-    function updateProfile() { document.getElementById('profileName').value = profile.name || ''; document.getElementById('profileUsername').value = profile.username || ''; document.getElementById('profileFavorite').value = profile.favorite || ''; const info = document.getElementById('profileInfo'); info.textContent = (profile.name || profile.username || profile.favorite) ? `Name: ${profile.name || 'Not set'}\nUsername: ${profile.username || 'Not set'}\nFavorite: ${profile.favorite || 'Not set'}` : 'Nothing saved yet.'; }
-    function deleteProfile() { if (!confirm('Delete your CONEX profile?')) return; profile = {}; localStorage.removeItem(KEY.profile); updateProfile(); }
-    function generateBook() { const idea = document.getElementById('bookIdea').value.trim(); if (!idea) return; lastBook = `Title: ${idea}\n\nChapter 1: The Beginning\nThe world was quiet until a signal appeared in the sky.\n\nChapter 2: The Mystery\nThe characters discovered that the first clue was only the beginning.`; document.getElementById('bookOutput').textContent = lastBook; }
-    function speakBook() { if (lastBook) speak(lastBook); }
-    function speak(text) { if (!('speechSynthesis' in window)) return alert('Voice isn’t supported.'); speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
-    function addBlock(name) { blocks.push(name); localStorage.setItem(KEY.blocks, JSON.stringify(blocks)); updateBlocks(); }
-    function updateBlocks() { const list = document.getElementById('blockList'); list.innerHTML = ''; if (!blocks.length) { list.textContent = 'No blocks yet.'; return; } blocks.forEach((block, i) => { const div = document.createElement('div'); div.className = 'block'; div.textContent = `${i + 1}. ${block}`; list.appendChild(div); }); }
-    function openPanel(id) { document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    function closePanels() { document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active')); }
-    function updateWebUI() { document.getElementById('webButton').textContent = webAccess ? 'ON' : 'OFF'; document.getElementById('webStatus').textContent = webAccess ? '🌐 Web access enabled.' : '🔒 Local-only mode.'; }
-    function toggleWeb() { webAccess = !webAccess; localStorage.setItem(KEY.web, String(webAccess)); updateWebUI(); }
-    function clearAllLocalData() { if (!confirm('Delete all local CONEX data?')) return; Object.values(KEY).forEach(key => localStorage.removeItem(key)); memories = []; blocks = []; profile = {}; chatHistory = []; webAccess = false; updateMemoryList(); updateBlocks(); updateProfile(); updateWebUI(); }
-    async function askChatGPT() { const input = document.getElementById('chatGPTQuestion'), output = document.getElementById('chatGPTAnswer'), question = input.value.trim(); if (!question) return; output.textContent = 'Thinking...'; try { output.textContent = await askRemoteAi(question); } catch (error) { output.textContent = 'CONEX could not connect to the AI server.'; console.error(error); } }
-    function quickQuestion(text) { const input = document.getElementById('chatGPTQuestion'); input.value = text; input.focus(); }
+    function saveMemory() {
+      const input = document.getElementById('memoryInput');
+      const text = input.value.trim();
+      if (!text) return;
+      memories.push(text);
+      memories = memories.slice(-50);
+      localStorage.setItem(KEY.memory, JSON.stringify(memories));
+      input.value = '';
+      updateMemoryList();
+    }
 
-    function boot() { const startup = document.getElementById('startup'); addMessage('Hi! I’m CONEX AI. What do you want to do?', 'ai'); updateMemoryList(); updateBlocks(); updateProfile(); updateWebUI(); const input = document.getElementById('message'); input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 180) + 'px'; }); input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }); setTimeout(() => { startup.style.opacity = '0'; setTimeout(() => startup.remove(), 500); }, 500); }
+    function updateMemoryList() {
+      const list = document.getElementById('memoryList');
+      list.innerHTML = '';
+
+      if (!memories.length) {
+        list.textContent = 'No memories saved.';
+        return;
+      }
+
+      memories.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'block';
+        row.innerHTML = `<span>${item}</span><button onclick="memories.splice(${index}, 1); localStorage.setItem(KEY.memory, JSON.stringify(memories)); updateMemoryList();">✕</button>`;
+        list.appendChild(row);
+      });
+    }
+
+    function saveProfile() {
+      profile = {
+        name: document.getElementById('profileName').value.trim(),
+        username: document.getElementById('profileUsername').value.trim(),
+        favorite: document.getElementById('profileFavorite').value.trim()
+      };
+      localStorage.setItem(KEY.profile, JSON.stringify(profile));
+      updateProfile();
+    }
+
+    function updateProfile() {
+      document.getElementById('profileName').value = profile.name || '';
+      document.getElementById('profileUsername').value = profile.username || '';
+      document.getElementById('profileFavorite').value = profile.favorite || '';
+    }
+
+    function deleteProfile() {
+      if (!confirm('Delete your CONEX profile?')) return;
+      profile = {};
+      localStorage.removeItem(KEY.profile);
+      updateProfile();
+    }
+
+    function generateBook() {
+      const idea = document.getElementById('bookIdea').value.trim();
+      if (!idea) return;
+
+      lastBook = `Title: ${idea}\n\nChapter 1: The Beginning\nThe world was quiet until a sign appeared in the sky.\n\nChapter 2: The Chase\nA brave traveler followed the signal through the dark.\n\nChapter 3: The Awakening\nThe truth was hidden inside the heart of CONEX.`;
+      addMessage(`Book idea: ${idea}\n\n${lastBook}`, 'ai');
+    }
+
+    function speakBook() {
+      if (!lastBook) return;
+      speak(lastBook);
+    }
+
+    function speak(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Voice isn’t supported.');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    }
+
+    function addBlock(name) {
+      blocks.push(name);
+      localStorage.setItem(KEY.blocks, JSON.stringify(blocks));
+      updateBlocks();
+    }
+
+    function updateBlocks() {
+      const list = document.getElementById('blockList');
+      list.innerHTML = '';
+
+      if (!blocks.length) {
+        list.textContent = 'No blocks yet.';
+        return;
+      }
+
+      blocks.forEach((block, index) => {
+        const row = document.createElement('div');
+        row.className = 'block';
+        row.innerHTML = `<span>${block}</span><button onclick="blocks.splice(${index}, 1); localStorage.setItem(KEY.blocks, JSON.stringify(blocks)); updateBlocks();">✕</button>`;
+        list.appendChild(row);
+      });
+    }
+
+    function openPanel(id) {
+      document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closePanels() {
+      document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+    }
+
+    function updateWebUI() {
+      const button = document.getElementById('webButton');
+      const status = document.getElementById('webStatus');
+      button.textContent = webAccess ? 'ON' : 'OFF';
+      status.textContent = webAccess ? '🌐 Web access enabled.' : '🌐 Web access disabled.';
+    }
+
+    function toggleWeb() {
+      webAccess = !webAccess;
+      localStorage.setItem(KEY.web, String(webAccess));
+      updateWebUI();
+    }
+
+    function clearAllLocalData() {
+      if (!confirm('Delete all local CONEX data?')) return;
+      Object.values(KEY).forEach(key => localStorage.removeItem(key));
+      memories = [];
+      blocks = [];
+      profile = {};
+      chatHistory = [];
+      updateMemoryList();
+      updateBlocks();
+      updateProfile();
+      updateWebUI();
+    }
+
+    async function askChatGPT() {
+      const input = document.getElementById('chatGPTQuestion');
+      const output = document.getElementById('chatGPTAnswer');
+      const question = input.value.trim();
+      if (!question) return;
+
+      output.textContent = 'Thinking...';
+
+      try {
+        const reply = await askRemoteAi(question);
+        output.textContent = reply;
+      } catch (error) {
+        output.textContent = 'CONEX could not connect to the AI server.';
+        console.error(error);
+      }
+    }
+
+    function quickQuestion(text) {
+      const input = document.getElementById('chatGPTQuestion');
+      input.value = text;
+      input.focus();
+    }
+
+    function boot() {
+      const startup = document.getElementById('startup');
+      addMessage('Hi! I’m CONEX AI. What do you want to do?', 'ai');
+      updateMemoryList();
+      updateBlocks();
+      updateProfile();
+      updateWebUI();
+
+      setTimeout(() => {
+        startup.style.display = 'none';
+      }, 1200);
+    }
+
+    document.getElementById('message').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
     boot();
   </script>
 </body>
