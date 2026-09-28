@@ -1,4 +1,165 @@
-<input id="chatInput" placeholder="Talk to CONEX...">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CONEX Universal Robot</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #101114;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    header {
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .robot {
+      width: 180px;
+      margin: 30px auto;
+      padding: 25px;
+      background: #292d38;
+      border-radius: 20px;
+    }
+
+    .eye {
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      background: #35ff72;
+      border-radius: 50%;
+      margin: 10px;
+    }
+
+    button {
+      padding: 14px 22px;
+      margin: 6px;
+      border: 0;
+      border-radius: 10px;
+      background: #292d38;
+      color: white;
+      font-size: 16px;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    #status {
+      margin: 20px;
+      color: #35ff72;
+    }
+
+    input {
+      width: 80%;
+      max-width: 400px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 0;
+      margin: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>CONEX Universal Robot</header>
+
+  <div class="robot">
+    <div>
+      <span class="eye"></span>
+      <span class="eye"></span>
+    </div>
+
+    <p id="robotText">CONEX Robot Ready</p>
+  </div>
+
+  <input
+    id="server"
+    type="text"
+    placeholder="Enter your CONEX server URL"
+  >
+
+  <br>
+
+  <button onclick="connectCONEX()">CONNECT CONEX</button>
+
+  <div id="status">Not connected</div>
+
+  <hr>
+
+  <button onclick="sendCommand('MOVE_UP')">UP</button>
+  <br>
+  <button onclick="sendCommand('MOVE_LEFT')">LEFT</button>
+  <button onclick="sendCommand('ACTION')">ACTION</button>
+  <button onclick="sendCommand('MOVE_RIGHT')">RIGHT</button>
+  <br>
+  <button onclick="sendCommand('MOVE_DOWN')">DOWN</button>
+
+  <script>
+    let conexServer = "";
+
+    function connectCONEX() {
+      conexServer = document.getElementById("server").value.trim();
+
+      if (!conexServer) {
+        document.getElementById("status").textContent =
+          "Enter your CONEX server URL first.";
+        return;
+      }
+
+      document.getElementById("status").textContent =
+        "CONEX connection configured.";
+
+      document.getElementById("robotText").textContent =
+        "CONEX Robot Connected";
+    }
+
+    async function sendCommand(command) {
+      if (!conexServer) {
+        document.getElementById("status").textContent =
+          "Connect CONEX first.";
+        return;
+      }
+
+      try {
+        const response = await fetch(conexServer + "/robot", {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            command: command
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("CONEX server rejected the command.");
+        }
+
+        const data = await response.json();
+
+        document.getElementById("status").textContent =
+          data.message || "Command sent to CONEX.";
+      }
+
+      catch (error) {
+        document.getElementById("status").textContent =
+          "Could not connect to CONEX.";
+      }
+    }
+  </script>
+
+</body>
+</html><input id="chatInput" placeholder="Talk to CONEX...">
 <button onclick="conexSendMessage()">SEND</button>
 
 <div id="chat"></div><script>
